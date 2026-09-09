@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><defs><symbol id="ofus-nav-chart" viewBox="0 0 64 64">
+      <rect x="11" y="13" width="42" height="38" rx="3.5" fill="none" stroke="currentColor" stroke-width="3"/>
+      <path d="M12 24h40M20 44l7-7 6 5 9-11 7 6" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="20" cy="44" r="2" fill="currentColor"/><circle cx="27" cy="37" r="2" fill="currentColor"/><circle cx="33" cy="42" r="2" fill="currentColor"/><circle cx="42" cy="31" r="2" fill="currentColor"/><circle cx="49" cy="37" r="2" fill="currentColor"/>
+    </symbol><symbol id="ofus-nav-task" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="13" y="13" width="38" height="38" rx="4"/><path d="m22 32 7 7 14-15"/></g></symbol><symbol id="ofus-nav-project" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M10 20a4 4 0 0 1 4-4h12l6 6h18a4 4 0 0 1 4 4v23a4 4 0 0 1-4 4H14a4 4 0 0 1-4-4Z"/><path d="M21 33v10M31 30v13M41 35v8"/></g></symbol><symbol id="ofus-nav-building" viewBox="0 0 64 64">
+<g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+<path d="M10 51H54M15 51V26Q15 23 18 23H28M28 51V15Q28 12 31 12H47Q50 12 50 15V51M23 51V43H29M37 51V43H43"/>
+<path d="M21 31H22M21 37H22M35 21H37M43 21H44M35 29H37M43 29H44M35 36H37M43 36H44"/>
+</g></symbol><symbol id="ofus-nav-calendar" viewBox="0 0 64 64">
+      <rect x="12" y="16" width="40" height="35" rx="3" fill="none" stroke="currentColor" stroke-width="3"/>
+      <path d="M12 27h40M22 11v10M42 11v10M21 35h1M31.5 35h1M42 35h1M21 43h1M31.5 43h1M42 43h1" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+    </symbol><symbol id="ofus-nav-mailbox" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m11 31 8-16h26l8 16v17a4 4 0 0 1-4 4H15a4 4 0 0 1-4-4Z"/><path d="M11 32h12l4 8h10l4-8h12"/></g></symbol><symbol id="ofus-nav-settings" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m27 10-2 7-6 3-7-2-5 9 5 5v7l-5 5 5 9 7-2 6 3 2 7h10l2-7 6-3 7 2 5-9-5-5v-7l5-5-5-9-7 2-6-3-2-7Z" transform="translate(0 -3) scale(1 .95)"/><circle cx="32" cy="31" r="9"/></g></symbol></defs></svg>

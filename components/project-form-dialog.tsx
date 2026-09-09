@@ -1,4 +1,5 @@
 "use client";
+import { useDialogFocus } from "./use-dialog-focus";
 
 import { useRef, useState, type FormEvent } from "react";
 import { FolderKanban, X } from "lucide-react";
@@ -11,6 +12,7 @@ export function ProjectFormDialog({ project, companies, onCancel, onSave }: { pr
   const [submitting, setSubmitting] = useState(false);
   const submissionLock = useRef(false);
   const close = () => { if (!submissionLock.current && !submitting) onCancel(); };
+  useDialogFocus(true, close);
   const setField = <K extends keyof ProjectInput>(field: K, value: ProjectInput[K]) => setForm((current) => ({ ...current, [field]: value }));
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -24,7 +26,7 @@ export function ProjectFormDialog({ project, companies, onCancel, onSave }: { pr
   };
   return <div className="responsive-dialog z-[70]" role="dialog" aria-modal="true" aria-labelledby="project-form-title">
     <button type="button" className="absolute inset-0" onClick={close} aria-label="Proje formunu kapat" />
-    <form onSubmit={submit} className="responsive-dialog-panel max-w-xl">
+    <form onSubmit={submit} className="responsive-dialog-panel max-w-[720px]">
       <header className="flex items-center justify-between border-b border-slate-100 px-5 py-4"><div className="flex items-center gap-3"><span className="rounded-lg bg-indigo-50 p-2 text-indigo-600"><FolderKanban size={17} /></span><div><h2 id="project-form-title" className="text-sm font-semibold text-slate-950">{project ? "Projeyi Düzenle" : "Proje Ekle"}</h2><p className="text-xs text-slate-400">Proje ve firma bilgilerini kaydedin.</p></div></div><button type="button" disabled={submitting} onClick={close} className="icon-button" aria-label="Kapat"><X size={18} /></button></header>
       <div className="responsive-dialog-body grid gap-4 p-4 sm:grid-cols-2 sm:p-5">
         <label className="field-label sm:col-span-2">Proje adı <span className="text-rose-500">*</span><input className="input" value={form.name} onChange={(event) => { setField("name", event.target.value); setError(""); }} /></label>
@@ -38,3 +40,5 @@ export function ProjectFormDialog({ project, companies, onCancel, onSave }: { pr
     </form>
   </div>;
 }
+
+

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState, type FormEvent } from "react";
-import { ArrowRight, LockKeyhole } from "lucide-react";
+import { ArrowRight, LockKeyhole, Mail, Eye, EyeOff, UserRound } from "lucide-react";
 import { signInWithEmail, signUpWithEmail } from "@/lib/supabase/auth";
 import { BrandMark } from "./brand-mark";
 
@@ -31,6 +31,8 @@ export function AuthForm({ mode, initialMessage }: { mode: AuthMode; initialMess
   const [success, setSuccess] = useState("");
   const [pending, setPending] = useState(false);
   const submissionLock = useRef(false);
+  const [visible, setVisible] = useState(false);
+  const authRoot = useRef<HTMLElement>(null);
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -52,6 +54,13 @@ export function AuthForm({ mode, initialMessage }: { mode: AuthMode; initialMess
         const { error: authError } = await signInWithEmail(email.trim(), password);
         if (authError) return setError(authErrorMessage(authError.code));
       }
+      if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches && authRoot.current) {
+        const layers = authRoot.current.querySelectorAll(".ofus-auth-column > *, .ofus-auth-hero > div");
+        await Promise.all([...layers].map((layer) => layer.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 450, fill: "forwards" }).finished.catch(() => undefined)));
+        const wipe = authRoot.current.querySelector(".ofus-auth-wipe");
+        if (wipe) await wipe.animate([{ transform: `scaleX(${window.innerWidth <= 760 ? 1 : 1 / 3})` }, { transform: "scaleX(1)" }], { duration: window.innerWidth <= 760 ? 0 : 600, easing: "cubic-bezier(.4,0,.2,1)", fill: "forwards" }).finished.catch(() => undefined);
+        try { sessionStorage.setItem("ofus.workspace-entry", String(Date.now())); } catch { /* Optional entry animation. */ }
+      }
       router.replace("/dashboard");
       router.refresh();
     } catch {
@@ -62,21 +71,23 @@ export function AuthForm({ mode, initialMessage }: { mode: AuthMode; initialMess
     }
   };
 
-  return <main className="flex min-h-screen items-center justify-center bg-background p-4">
-    <div className="w-full max-w-md">
-      <div className="mb-6 text-center"><div className="flex h-12 items-center justify-center"><BrandMark className="text-4xl" /></div><p className="mt-2 text-sm text-slate-500">Ortak çalışma alanınıza güvenle devam edin.</p></div>
-      <form onSubmit={submit} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-950/[0.05]">
-        <div className="border-b border-slate-100 px-6 py-5"><div className="flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-700"><LockKeyhole size={19} /></span><div><h1 className="text-lg font-semibold text-slate-950">{signingUp ? "Kayıt Ol" : "Giriş Yap"}</h1><p className="text-xs text-slate-400">{signingUp ? "Yeni hesabınızı oluşturun." : "Hesabınızla çalışma alanına girin."}</p></div></div></div>
-        <div className="space-y-4 p-6">
-          {signingUp ? <label className="field-label">Ad Soyad<input required autoComplete="name" className="input" value={displayName} onChange={(event) => setDisplayName(event.target.value)} placeholder="Adınız ve soyadınız" /></label> : null}
-          <label className="field-label">E-posta<input required type="email" autoComplete="email" className="input" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="ornek@eposta.com" /></label>
-          <label className="field-label">Şifre<input required minLength={8} type="password" autoComplete={signingUp ? "new-password" : "current-password"} className="input" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="En az 8 karakter" /></label>
-          {error ? <p role="alert" className="rounded-lg border border-rose-100 bg-rose-50 px-3 py-2.5 text-xs leading-5 text-rose-700">{error}</p> : null}
-          {success ? <p className="rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2.5 text-xs leading-5 text-emerald-700">{success}</p> : null}
-          <button disabled={pending} type="submit" className="primary-button h-10 w-full disabled:cursor-not-allowed disabled:opacity-50">{pending ? "Lütfen bekleyin…" : signingUp ? "Kayıt Ol" : "Giriş Yap"}{!pending ? <ArrowRight size={15} /> : null}</button>
-        </div>
-        <div className="border-t border-slate-100 bg-slate-50/70 px-6 py-4 text-center text-xs text-slate-500">{signingUp ? "Zaten hesabınız var mı?" : "Henüz hesabınız yok mu?"} <Link className="font-semibold text-indigo-700 hover:text-indigo-900" href={signingUp ? "/giris" : "/kayit"}>{signingUp ? "Giriş Yap" : "Kayıt Ol"}</Link></div>
+  return <main ref={authRoot} className="ofus-auth">
+    <div className="ofus-auth-column">
+      <BrandMark />
+      <form onSubmit={submit} className="ofus-auth-form">
+        <h1>{signingUp ? "Kayıt ol" : "Giriş yap"}</h1>
+        <p>{signingUp ? "Birlikte çalışmaya başla." : "Ortak çalışma alanına devam et."}</p>
+        {signingUp ? <label className="ofus-auth-field">Ad soyad<span className="ofus-auth-input"><UserRound size={22} /><input required autoComplete="name" value={displayName} onChange={(event) => setDisplayName(event.target.value)} placeholder="Adın ve soyadın" /></span></label> : null}
+        <label className="ofus-auth-field">E-posta<span className="ofus-auth-input"><Mail size={22} /><input required type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="ornek@eposta.com" /></span></label>
+        <label className="ofus-auth-field">Şifre<span className="ofus-auth-input"><LockKeyhole size={22} /><input required minLength={8} type={visible ? "text" : "password"} autoComplete={signingUp ? "new-password" : "current-password"} value={password} onChange={(event) => setPassword(event.target.value)} placeholder={signingUp ? "En az 8 karakter" : "Şifreni gir"} /><button type="button" className="icon-button shrink-0" onClick={() => setVisible(!visible)} aria-label={visible ? "Şifreyi gizle" : "Şifreyi göster"}>{visible ? <EyeOff size={22} /> : <Eye size={22} />}</button></span></label>
+        {error ? <p role="alert" className="mt-4 rounded-lg bg-rose-50 p-3 text-sm text-rose-700">{error}</p> : null}
+        {success ? <p role="status" className="mt-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700">{success}</p> : null}
+        <button disabled={pending} type="submit" className="primary-button">{pending ? "Lütfen bekleyin…" : signingUp ? "Kayıt Ol" : "Giriş Yap"}{!pending ? <ArrowRight size={22} /> : null}</button>
+        <div className="mt-7 text-center text-sm text-slate-500">{signingUp ? "Zaten hesabın var mı?" : "Henüz hesabın yok mu?"} <Link className="font-medium text-indigo-600" href={signingUp ? "/giris" : "/kayit"} onClick={async (event) => { if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return; event.preventDefault(); if (!matchMedia("(prefers-reduced-motion: reduce)").matches) await authRoot.current?.querySelector("form")?.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 400 }).finished.catch(() => undefined); router.push(signingUp ? "/giris" : "/kayit"); }}>{signingUp ? "Giriş yap" : "Kayıt ol"}</Link></div>
       </form>
+      <p className="ofus-auth-footer">OfUs · Ortak çalışma alanı</p>
     </div>
+    <aside className="ofus-auth-hero"><div><BrandMark /><p>Birlikte çalışmanın en net hali.</p></div></aside>
+    <div className="ofus-auth-wipe" aria-hidden="true" />
   </main>;
 }

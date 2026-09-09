@@ -20,7 +20,7 @@ export function ThemedSelect({ value, options, onValueChange, ariaLabel, classNa
   const menuRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [position, setPosition] = useState({ top: 0, left: 0, width: 0 });
+  const [position, setPosition] = useState({ top: 0, left: 0, width: 0, maxHeight: 256 });
   const selectedIndex = Math.max(0, options.findIndex((option) => option.value === value));
   const selected = options[selectedIndex];
 
@@ -28,14 +28,16 @@ export function ThemedSelect({ value, options, onValueChange, ariaLabel, classNa
     if (disabled || !options.length) return;
     const rect = triggerRef.current?.getBoundingClientRect();
     if (!rect) return;
-    const estimatedHeight = Math.min(options.length * 40 + 8, 256);
+    const estimatedHeight = Math.min(options.length * 42 + 14, 256);
     const viewportPadding = 8;
-    const width = Math.min(rect.width, window.innerWidth - viewportPadding * 2);
+    const width = Math.min(Math.max(rect.width, 180), window.innerWidth - viewportPadding * 2);
     const left = Math.min(Math.max(viewportPadding, rect.left), window.innerWidth - width - viewportPadding);
-    const top = rect.bottom + estimatedHeight > window.innerHeight && rect.top > estimatedHeight
-      ? rect.top - estimatedHeight - 4
-      : rect.bottom + 4;
-    setPosition({ top, left, width });
+    const spaceBelow = window.innerHeight - rect.bottom - viewportPadding - 4;
+    const spaceAbove = rect.top - viewportPadding - 4;
+    const above = spaceBelow < estimatedHeight && spaceAbove > spaceBelow;
+    const maxHeight = Math.max(42, Math.min(estimatedHeight, above ? spaceAbove : spaceBelow));
+    const top = above ? Math.max(viewportPadding, rect.top - maxHeight - 4) : rect.bottom + 4;
+    setPosition({ top, left, width, maxHeight });
     setActiveIndex(selectedIndex);
     setOpen(true);
   };
@@ -46,7 +48,10 @@ export function ThemedSelect({ value, options, onValueChange, ariaLabel, classNa
       const target = event.target as Node;
       if (!triggerRef.current?.contains(target) && !menuRef.current?.contains(target)) setOpen(false);
     };
-    const closeOnViewportChange = () => setOpen(false);
+    const closeOnViewportChange = (event: Event) => {
+      if (event.target instanceof Node && menuRef.current?.contains(event.target)) return;
+      setOpen(false);
+    };
     document.addEventListener("pointerdown", closeOutside);
     window.addEventListener("resize", closeOnViewportChange);
     window.addEventListener("scroll", closeOnViewportChange, true);
@@ -56,6 +61,12 @@ export function ThemedSelect({ value, options, onValueChange, ariaLabel, classNa
       window.removeEventListener("scroll", closeOnViewportChange, true);
     };
   }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const option = menuRef.current?.querySelector<HTMLElement>(`[id="${CSS.escape(listboxId)}-${activeIndex}"]`);
+    option?.scrollIntoView({ block: "nearest" });
+  }, [open, activeIndex, listboxId]);
 
   const move = (direction: 1 | -1) => {
     if (!options.length) return;
@@ -122,7 +133,7 @@ export function ThemedSelect({ value, options, onValueChange, ariaLabel, classNa
         role="listbox"
         aria-label={ariaLabel}
         className="themed-select-menu fixed z-[100] max-h-64 overflow-y-auto rounded-lg border p-1 shadow-xl"
-        style={{ top: position.top, left: position.left, width: position.width }}
+        style={{ top: position.top, left: position.left, width: position.width, maxHeight: position.maxHeight }}
       >
         {options.map((option, index) => <button
           id={`${listboxId}-${index}`}

@@ -6,6 +6,7 @@ import type { CompletionChecklist, Task } from "@/lib/types";
 import { todayIso } from "@/lib/utils";
 import { useWorkspace } from "./app-provider";
 import { Checkbox } from "./checkbox";
+import { useDialogFocus } from "./use-dialog-focus";
 
 const checklistItems: { key: keyof CompletionChecklist; label: string }[] = [
   { key: "delivered", label: "Teslim edildi" },
@@ -30,6 +31,7 @@ function CompletionForm({ task }: { task: Task }) {
   const submissionLock = useRef(false);
 
   const close = () => { if (!submissionLock.current && !taskSaving) { clearTaskError(); setCompletionTask(null); } };
+  useDialogFocus(true, close);
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     if (!resultNote.trim() || submissionLock.current || taskSaving) return;
@@ -52,7 +54,7 @@ function CompletionForm({ task }: { task: Task }) {
         <label className="field-label">Sonuç Notu<textarea required className="input min-h-20 resize-none" value={resultNote} onChange={(event) => setResultNote(event.target.value)} placeholder="İşin hangi sonuçla kapandığını kısaca yazın…" /></label>
         <label className="field-label">Ek Not <span className="font-normal text-slate-400">(isteğe bağlı)</span><textarea className="input min-h-16 resize-none" value={completionNote} onChange={(event) => setCompletionNote(event.target.value)} placeholder="Ek tamamlama bilgisi…" /></label>
       </div>
-      <footer className="responsive-dialog-footer"><button type="button" disabled={taskSaving} onClick={close} className="secondary-button">İptal</button><button type="submit" disabled={taskSaving} className="primary-button disabled:cursor-not-allowed disabled:opacity-50"><Check size={15} />{taskSaving ? "Tamamlanıyor…" : "Görevi Tamamla"}</button></footer>
+      <footer className="responsive-dialog-footer"><button type="button" disabled={taskSaving} onClick={close} className="secondary-button">İptal</button><button type="submit" disabled={taskSaving} className="primary-button completion-button disabled:cursor-not-allowed disabled:opacity-50"><Check size={15} />{taskSaving ? "Tamamlanıyor…" : "Görevi Tamamla"}</button></footer>
     </form>
   </div>;
 }

@@ -12,7 +12,7 @@ const statusStyles: Record<Status, string> = {
   "To Do": "bg-slate-100 text-slate-650",
   "In Progress": "bg-indigo-50 text-indigo-700",
   Waiting: "bg-amber-50 text-amber-700",
-  Review: "bg-cyan-50 text-cyan-700",
+  Review: "bg-emerald-50 text-emerald-700",
   Done: "bg-emerald-50 text-emerald-700",
 };
 
@@ -23,3 +23,4 @@ export function PriorityBadge({ priority }: { priority: Priority }) {
 export function StatusBadge({ status }: { status: Status }) {
   return <span className={`badge ${statusStyles[status]}`}>{statusLabels[status]}</span>;
 }
+

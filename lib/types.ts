@@ -21,18 +21,21 @@ export type Company = {
   phone: string;
   email: string;
   website: string;
+  linkedinUrl: string;
+  logoUrl: string | null;
   notes: string;
 };
 
-export type CompanyInput = Omit<Company, "id" | "color">;
+export type CompanyInput = Omit<Company, "id" | "color" | "logoUrl"> & {
+  logoFile?: File | null;
+  mutationId?: string;
+};
 
 export type Project = {
   id: string;
   name: string;
   companyId: string;
   status: "Active" | "On hold" | "Wrapping up";
-  progress: number;
-  memberIds: string[];
   description: string;
   notes: string;
 };

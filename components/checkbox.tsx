@@ -29,7 +29,7 @@ export function Checkbox({ checked, indeterminate = false, onChange, disabled = 
     />
     <span
       aria-hidden="true"
-      className={`flex h-4 w-4 items-center justify-center rounded border text-white transition group-hover:border-indigo-400 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-300 peer-focus-visible:ring-offset-2 peer-disabled:cursor-not-allowed peer-disabled:border-slate-200 peer-disabled:bg-slate-100 peer-disabled:text-slate-400 peer-disabled:opacity-60 ${checked || indeterminate ? checkedTone : "border-slate-300 bg-white"}`}
+      className={`checkbox-mark flex h-[18px] w-[18px] items-center justify-center rounded-[5px] border transition group-hover:border-indigo-400 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-300 peer-focus-visible:ring-offset-2 peer-disabled:cursor-not-allowed peer-disabled:border-slate-200 peer-disabled:bg-slate-100 peer-disabled:text-slate-400 peer-disabled:opacity-60 ${checked || indeterminate ? checkedTone : "border-slate-300 bg-white"}`}
     >{indeterminate ? <Minus size={12} strokeWidth={3} /> : checked ? <Check size={12} strokeWidth={3} /> : null}</span>
   </span>;
 }

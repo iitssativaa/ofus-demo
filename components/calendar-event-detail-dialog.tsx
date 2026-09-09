@@ -5,6 +5,7 @@ import type { CalendarEvent } from "@/lib/calendar-event-types";
 import { localTime } from "@/lib/task-selectors";
 import type { User } from "@/lib/types";
 import { reminderPresets } from "@/lib/reminders";
+import { useDialogFocus } from "./use-dialog-focus";
 
 export function CalendarEventDetailDialog({ event, users, timeZone, deleting, confirmDelete, error, onClose, onEdit, onDelete, onCancelDelete }: {
   event: CalendarEvent;
@@ -18,6 +19,7 @@ export function CalendarEventDetailDialog({ event, users, timeZone, deleting, co
   onDelete: () => void;
   onCancelDelete: () => void;
 }) {
+  useDialogFocus(true, onClose);
   const dateLabel = new Intl.DateTimeFormat("tr-TR", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone }).format(new Date(event.startsAt));
   const participantNames = event.participantIds.map((id) => users.find((user) => user.id === id)?.name).filter(Boolean).join(", ");
   const reminderLabels = event.reminders.map((preset) => reminderPresets.find((item) => item.value === preset)?.label).filter(Boolean).join(", ");

@@ -1,17 +1,10 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import { headers } from "next/headers";
 import "./globals.css";
+import Script from "next/script";
+import { ToastViewport } from "@/components/toast";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export async function generateMetadata(): Promise<Metadata> {
   const host = (await headers()).get("host") ?? "localhost:3000";
@@ -33,16 +26,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="tr" className="dark" style={{ colorScheme: "dark" }}>
+    <html lang="tr" suppressHydrationWarning>
       <head>
-        <meta name="color-scheme" content="dark" />
-        <meta name="theme-color" content="#0b111a" />
+        <meta name="color-scheme" content="light dark" />
+        <meta name="theme-color" content="#F5F6FB" /><Script src="/ofus/theme-init.js" strategy="beforeInteractive" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className="antialiased"
       >
         {children}
+        <ToastViewport />
       </body>
     </html>
   );
 }
+
+

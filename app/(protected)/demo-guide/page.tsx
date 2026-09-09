@@ -2,7 +2,7 @@ const usageSteps = [
   "Firma oluşturulur ve ilgili firma altında proje tanımlanır.",
   "Projeye bağlı görevler oluşturulur; sorumlu, son tarih, öncelik ve hatırlatmalar belirlenir.",
   "Tamamlanan ve iptal edilen işler geçmiş kayıtlarıyla korunur.",
-  "Task-Deadline ve Etkinlik takvimlerinden teslim tarihleri, etkinlikler ve rutinler izlenir.",
+  "Görev ve Etkinlik takvimlerinden teslim tarihleri, etkinlikler ve rutinler izlenir.",
   "Genel Bakış üzerinden günlük operasyon, yaklaşan işler, etkinlikler ve ekip iş yükü değerlendirilir.",
   "Mantar Pano ve Gelen Kutusu üzerinden ortak notlar ile operasyon hareketleri takip edilir.",
 ];
@@ -42,12 +42,12 @@ function GuideSection({ number, label, title, children }: { number: string; labe
 
 export default function DemoGuidePage() {
   return <div className="mx-auto max-w-6xl space-y-5 overflow-hidden">
-    <header className="demo-guide-hero panel relative overflow-hidden p-5 sm:p-8">
+    <header className="demo-guide-hero panel relative overflow-hidden p-5 sm:p-10">
       <p className="font-mono text-xs font-bold tracking-[0.2em] text-amber-400">DEMO YÖNERGESİ</p>
       <h1 className="mt-3 max-w-3xl text-2xl font-semibold tracking-[-0.03em] text-slate-950 sm:text-4xl">OfUs ürün ve teknik değerlendirme rehberi</h1>
       <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-500">OfUs ürününün kullanım modeli, teknik altyapısı, güvenlik yaklaşımı ve geliştirme vizyonuna ilişkin genel bilgilendirme.</p>
       <dl className="mt-6 flex flex-wrap gap-x-6 gap-y-2 border-t border-slate-100 pt-4 font-mono text-[11px]">
-        <div className="flex gap-2"><dt className="text-slate-500">PRODUCT /</dt><dd className="text-slate-200">OfUs</dd></div>
+        <div className="flex gap-2"><dt className="text-slate-500">PRODUCT /</dt><dd className="text-slate-700">OfUs</dd></div>
         <div className="flex gap-2"><dt className="text-slate-500">ENVIRONMENT /</dt><dd className="text-amber-400">DEMO</dd></div>
         <div className="flex gap-2"><dt className="text-slate-500">STATUS /</dt><dd className="text-emerald-500">ACTIVE</dd></div>
       </dl>
@@ -65,7 +65,7 @@ export default function DemoGuidePage() {
 
     <GuideSection number="03" label="SECURITY" title="Güvenlik Mimarisi">
       <p>OfUs, yalnızca arayüz seviyesinde erişim kontrolüne güvenmeyen; sunucu ve veritabanı katmanlarında yetkilendirme uygulayan bir güvenlik modeli kullanır.</p>
-      <div className="mt-5 grid gap-3 md:grid-cols-2">{securityPoints.map(([label, text]) => <article key={label} className="rounded-lg border border-slate-200 p-4"><h3 className="font-mono text-[11px] font-bold tracking-[0.1em] text-slate-300">{label}</h3><p className="mt-2 leading-6">{text}</p></article>)}</div>
+      <div className="mt-5 grid gap-3 md:grid-cols-2">{securityPoints.map(([label, text]) => <article key={label} className="rounded-lg border border-slate-200 p-4"><h3 className="font-mono text-[11px] font-bold tracking-[0.1em] text-slate-600">{label}</h3><p className="mt-2 leading-6">{text}</p></article>)}</div>
     </GuideSection>
 
     <GuideSection number="04" label="INFRASTRUCTURE" title="Ölçeklenebilir Yapı">

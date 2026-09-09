@@ -1,0 +1,5 @@
+interface:
+  display_name: "Production Readiness"
+  short_description: "Audit a project before release or deployment"
+policy:
+  allow_implicit_invocation: false

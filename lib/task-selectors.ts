@@ -1,20 +1,27 @@
 import { sizePoints, type Task } from "./types";
 
+function validDate(value: Date | string): Date | null {
+  const date = typeof value === "string" ? new Date(value) : value;
+  return Number.isFinite(date.getTime()) ? date : null;
+}
+
+function partValue(parts: Intl.DateTimeFormatPart[], type: string): string | undefined {
+  return parts.find((part) => part.type === type)?.value;
+}
+
 export function localDate(value: Date | string = new Date(), timeZone?: string): string {
   if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
-  const date = typeof value === "string" ? new Date(value) : value;
-  if (!Number.isFinite(date.getTime())) return "";
+  const date = validDate(value);
+  if (!date) return "";
   const parts = new Intl.DateTimeFormat("en-US", { year: "numeric", month: "2-digit", day: "2-digit", timeZone }).formatToParts(date);
-  const part = (type: string) => parts.find((item) => item.type === type)?.value;
-  return `${part("year")}-${part("month")}-${part("day")}`;
+  return `${partValue(parts, "year")}-${partValue(parts, "month")}-${partValue(parts, "day")}`;
 }
 
 export function localTime(value: Date | string = new Date(), timeZone?: string): string {
-  const date = typeof value === "string" ? new Date(value) : value;
-  if (!Number.isFinite(date.getTime())) return "";
+  const date = validDate(value);
+  if (!date) return "";
   const parts = new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", hourCycle: "h23", timeZone }).formatToParts(date);
-  const part = (type: string) => parts.find((item) => item.type === type)?.value;
-  return `${part("hour")}:${part("minute")}`;
+  return `${partValue(parts, "hour")}:${partValue(parts, "minute")}`;
 }
 
 export function deadlineToIso(dateValue: string, timeValue: string): string | null {

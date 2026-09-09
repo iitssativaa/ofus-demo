@@ -9,6 +9,7 @@ import { deadlineToIso } from "@/lib/task-selectors";
 import { useWorkspace } from "./app-provider";
 import { ReminderPresetPicker } from "./reminder-preset-picker";
 import { ThemedSelect } from "./themed-select";
+import { useDialogFocus } from "./use-dialog-focus";
 
 export function QuickAddTask() {
   const { companies, projects, users, quickAddOpen, setQuickAddOpen, addTask, taskSaving, taskError, clearTaskError } = useWorkspace();
@@ -35,8 +36,9 @@ export function QuickAddTask() {
   const dueAt = deadlineToIso(dueDate, dueTime);
   const canSubmit = Boolean(title.trim()) && assigneeIsValid && Boolean(dueAt);
 
-  if (!quickAddOpen) return null;
   const close = () => { if (submissionLock.current || taskSaving) return; clearTaskError(); setValidationError(""); setQuickAddOpen(false); setMore(false); };
+  useDialogFocus(quickAddOpen, close);
+  if (!quickAddOpen) return null;
   const save = async (event: FormEvent) => {
     event.preventDefault();
     if (submissionLock.current || taskSaving) return;
@@ -54,8 +56,9 @@ export function QuickAddTask() {
       setMore(false);
       setReminders([]);
     } catch {
-      submissionLock.current = false;
       /* Sağlayıcı Türkçe hata durumunu gösterir. */
+    } finally {
+      submissionLock.current = false;
     }
   };
 
@@ -63,11 +66,11 @@ export function QuickAddTask() {
   return (
     <div className="responsive-dialog z-[60]" role="dialog" aria-modal="true" aria-label="Hızlı Görev Ekle">
       <button type="button" className="absolute inset-0" onClick={close} aria-label="Hızlı görev formunu kapat" />
-      <form onSubmit={save} className="responsive-dialog-panel max-w-xl shadow-slate-950/15">
+      <form onSubmit={save} className="responsive-dialog-panel max-w-[760px] shadow-slate-950/15">
         <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4"><div><p className="text-sm font-semibold text-slate-950">Hızlı Görev Ekle</p><p className="text-xs text-slate-400">Görev doğrudan çalışma planına eklenir.</p></div><button type="button" onClick={close} className="icon-button" aria-label="Kapat"><X size={18} /></button></div>
         <div className="responsive-dialog-body space-y-4 p-4 sm:p-5">
           {error ? <p role="alert" className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-medium text-rose-700">{error}</p> : null}
-          <input value={title} onChange={(event) => { setTitle(event.target.value); setValidationError(""); }} className="w-full border-0 p-0 text-xl font-semibold text-slate-950 outline-none placeholder:text-slate-300" placeholder="Ne yapılması gerekiyor?" aria-label="Görev adı" required />
+          <input value={title} onChange={(event) => { setTitle(event.target.value); setValidationError(""); }} className="input mt-0 h-12 text-base font-medium" placeholder="Ne yapılması gerekiyor?" aria-label="Görev adı" required />
           <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_120px]">
             <div className="field-label">Sorumlu<ThemedSelect ariaLabel="Sorumlu" value={effectiveAssigneeId} onValueChange={(value) => { setAssigneeId(value); setValidationError(""); }} options={[{ value: "", label: "Sorumlu seçin" }, ...users.map((user) => ({ value: user.id, label: user.name }))]} /></div>
             <label className="field-label">Son Tarih<input required type="date" lang="tr" aria-label="Son Tarih" className="input" value={dueDate} onChange={(event) => { setDueDate(event.target.value); setValidationError(""); }} /></label>
@@ -89,3 +92,4 @@ export function QuickAddTask() {
     </div>
   );
 }
+

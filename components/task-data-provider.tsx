@@ -6,12 +6,13 @@ import type { BulkTaskAction, CompletionReport, DeletionReport } from "@/lib/typ
 import type { TaskWorkspaceData } from "@/lib/supabase/tasks";
 import { addTaskActivity as persistActivity, applyBulkTaskActions, cancelOrDeleteTask, completeTask as persistCompletion, createTask, listTaskActivities, updateTask as persistTaskUpdate } from "@/lib/supabase/tasks-client";
 import { useWorkspace, WorkspaceContext, type WorkspaceContextValue } from "./app-provider";
+import { toast } from "./toast";
 
 const subscribeTimeZone = () => () => undefined;
 const browserTimeZone = () => Intl.DateTimeFormat().resolvedOptions().timeZone;
 const serverTimeZone = () => "UTC";
 
-export function TaskDataProvider({ data, children }: { data: TaskWorkspaceData; children: ReactNode }) {
+export function TaskDataProvider({ data, children, initialSelectedTaskId = null }: { data: TaskWorkspaceData; children: ReactNode; initialSelectedTaskId?: string | null }) {
   const outer = useWorkspace();
   const [storedTasks, setTasks] = useState(data.tasks);
   const [sourceData, setSourceData] = useState(data);
@@ -21,7 +22,7 @@ export function TaskDataProvider({ data, children }: { data: TaskWorkspaceData; 
   }
   const timeZone = useSyncExternalStore(subscribeTimeZone, browserTimeZone, serverTimeZone);
   const tasks = useMemo(() => storedTasks.map((task) => task.dueAt ? { ...task, dueDate: localDate(task.dueAt, timeZone), dueTime: localTime(task.dueAt, timeZone) } : task), [storedTasks, timeZone]);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(initialSelectedTaskId);
   const [completionId, setCompletionId] = useState<string | null>(null);
   const [deletionId, setDeletionId] = useState<string | null>(null);
   const [quickAddOpen, setQuickAddOpen] = useState(false);
@@ -50,6 +51,7 @@ export function TaskDataProvider({ data, children }: { data: TaskWorkspaceData; 
     catch (error) {
       console.error(message, error);
       setTaskError(message);
+      toast.show("saveError", { message, dedupeKey: "task-save-error" });
       throw new Error(message);
     } finally {
       pendingMutations.current -= 1;
@@ -85,6 +87,7 @@ export function TaskDataProvider({ data, children }: { data: TaskWorkspaceData; 
       const created = await createTask(input);
       setTasks((current) => [created, ...current]);
       setQuickAddOpen(false);
+      toast.show("taskCreated", { message: `“${created.title}” görevi oluşturuldu`, actionLabel: "Görevi aç", href: `/tasks/${created.id}` });
     }),
     updateTask: async (id, patch) => run("Görev güncellenemedi.", async () => {
       const updated = await persistTaskUpdate(id, patch);
@@ -99,12 +102,14 @@ export function TaskDataProvider({ data, children }: { data: TaskWorkspaceData; 
       setTasks((current) => current.map((task) => task.id === id ? { ...result.task, activity: [result.activity, ...(task.activity ?? [])] } : task));
       setCompletionId(null);
       setSelectedId(null);
+      toast.show("taskCompleted");
     }),
     deleteTask: async (id, report: DeletionReport) => run("Görev iptal edilemedi.", async () => {
       const result = await cancelOrDeleteTask(id, report);
       setTasks((current) => result ? current.map((task) => task.id === id ? { ...result.task, activity: [result.activity, ...(task.activity ?? [])] } : task) : current.filter((task) => task.id !== id));
       setDeletionId(null);
       setSelectedId(null);
+      toast.show(result ? "recordArchived" : "recordDeleted", { message: result ? "Görev iptal edilerek arşivlendi" : "Görev silindi" });
     }),
     bulkUpdateTasks: async (ids, action: BulkTaskAction) => {
       setTaskSaving(true);
@@ -120,6 +125,7 @@ export function TaskDataProvider({ data, children }: { data: TaskWorkspaceData; 
             return result ? { ...result, reminders: task.reminders, activity: [...(result.activity ?? []), ...(task.activity ?? [])] } : task;
           });
         });
+        if (updated.length) toast.show(action.type === "status" ? "taskStatusChanged" : action.type === "assignee" ? "taskAssigned" : action.type === "due_date" ? "dueDateChanged" : "recordUpdated", { message: `${updated.length} görev güncellendi` });
         return { updatedIds: updated.map((result) => result.id), failedIds };
       } catch (error) {
         console.error("Toplu görev işlemi başlatılamadı.", error);

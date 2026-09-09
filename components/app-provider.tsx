@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
-import type { BulkTaskAction, BulkTaskResult, Company, CompanyInput, CompletionReport, DeletionReport, Project, Task, TaskInput, User, WorkNotification } from "@/lib/types";
+import type { BulkTaskAction, BulkTaskResult, Company, CompletionReport, DeletionReport, Project, Task, TaskInput, User, WorkNotification } from "@/lib/types";
 
 export type WorkspaceContextValue = {
   tasks: Task[];
@@ -32,16 +32,13 @@ export type WorkspaceContextValue = {
   clearTaskError: () => void;
   toggleNotificationRead: (id: string) => void;
   clearNotification: (id: string) => void;
-  addCompany: (input: CompanyInput) => Company;
-  updateCompany: (id: string, input: CompanyInput) => void;
-  deleteCompany: (id: string) => void;
 };
 
 export const WorkspaceContext = createContext<WorkspaceContextValue | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [companies, setCompanies] = useState<Company[]>([]);
+  const [companies] = useState<Company[]>([]);
   const [projects] = useState<Project[]>([]);
   const [users] = useState<User[]>([]);
   const [notifications, setNotifications] = useState<WorkNotification[]>([]);
@@ -142,17 +139,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     },
     toggleNotificationRead: (id) => setNotifications((current) => current.map((item) => item.id === id ? { ...item, read: !item.read } : item)),
     clearNotification: (id) => setNotifications((current) => current.filter((item) => item.id !== id)),
-    addCompany: (input) => {
-      const company: Company = {
-        ...input,
-        id: `local-company-${crypto.randomUUID()}`,
-        color: ["#6d5bd0", "#d0647c", "#248f8d", "#c47a38"][companies.length % 4],
-      };
-      setCompanies((current) => [...current, company]);
-      return company;
-    },
-    updateCompany: (id, input) => setCompanies((current) => current.map((company) => company.id === id ? { ...company, ...input } : company)),
-    deleteCompany: (id) => setCompanies((current) => current.filter((company) => company.id !== id)),
     clearTaskError: () => undefined,
   }), [tasks, companies, projects, users, notifications, selectedTask, completionTask, deletionTask, quickAddOpen, sidebarCollapsed, mobileNavOpen]);
 

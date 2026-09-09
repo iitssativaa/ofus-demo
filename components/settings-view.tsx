@@ -8,6 +8,9 @@ import { createTelegramLink, disconnectTelegram, getTelegramConnection, removeOw
 import { Avatar } from "./avatar";
 import { PasswordChangeForm } from "./password-change-form";
 import { PageHeader } from "./page-header";
+import { ThemeToggle } from "./theme-toggle";
+import { useDialogFocus } from "./use-dialog-focus";
+import { toast } from "./toast";
 
 function memberInitials(member: SettingsMember) {
   const name = member.displayName ?? "Ad bilgisi yok";
@@ -37,6 +40,8 @@ export function SettingsView({ initialData }: { initialData: SettingsData }) {
   const [telegramLink, setTelegramLink] = useState<{ botUrl: string; expiresAt: string } | null>(null);
   const [confirmDisconnect, setConfirmDisconnect] = useState(false);
   const [telegramExpanded, setTelegramExpanded] = useState(false);
+  useDialogFocus(editing, () => { if (!profileSaving) setEditing(false); });
+  useDialogFocus(Boolean(telegramLink), () => { if (!telegramBusy) setTelegramLink(null); });
 
   const openEditor = () => {
     if (!currentMember) return;
@@ -56,8 +61,10 @@ export function SettingsView({ initialData }: { initialData: SettingsData }) {
       setMembers((current) => current.map((member) => member.id === profile.id ? { ...member, displayName: profile.display_name, avatarUrl: profile.avatar_url } : member));
       emitProfileUpdated({ userId: profile.id, displayName: profile.display_name, avatarUrl: profile.avatar_url });
       setEditing(false);
+      toast.show("profileSaved");
     } catch (error) {
       setProfileError(error instanceof Error ? error.message : "Profil kaydedilemedi.");
+      toast.show("saveError", { message: "Profil kaydedilemedi" });
     } finally {
       profileLock.current = false;
       setProfileSaving(false);
@@ -95,8 +102,10 @@ export function SettingsView({ initialData }: { initialData: SettingsData }) {
       setAvatarFile(null);
       setAvatarPreview(null);
       emitProfileUpdated({ userId: profile.id, avatarUrl: profile.avatar_url });
+      toast.show("fileUploaded", { message: "Profil fotoğrafı kaydedildi" });
     } catch (error) {
       setAvatarError(error instanceof Error ? error.message : "Profil fotoğrafı kaydedilemedi.");
+      toast.show("uploadError", { message: "Profil fotoğrafı kaydedilemedi" });
     } finally {
       avatarLock.current = false;
       setAvatarBusy(false);
@@ -114,8 +123,10 @@ export function SettingsView({ initialData }: { initialData: SettingsData }) {
       setAvatarFile(null);
       setAvatarPreview(null);
       emitProfileUpdated({ userId: profile.id, avatarUrl: null });
+      toast.show("recordDeleted", { message: "Profil fotoğrafı kaldırıldı" });
     } catch (error) {
       setAvatarError(error instanceof Error ? error.message : "Profil fotoğrafı kaldırılamadı.");
+      toast.show("saveError", { message: "Profil fotoğrafı kaldırılamadı" });
     } finally {
       avatarLock.current = false;
       setAvatarBusy(false);
@@ -190,10 +201,10 @@ export function SettingsView({ initialData }: { initialData: SettingsData }) {
 
   return <>
     <PageHeader eyebrow="Çalışma alanı yönetimi" title="Ayarlar" description={`${initialData.workspaceName} profil ve çalışma alanı tercihleri.`} />
-    <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
+    <div className="settings-layout grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
       <div className="space-y-6">
-        <section className="panel p-5 sm:p-6">
-          <div className="flex items-center gap-2"><UserRound size={17} className="text-indigo-600"/><h2 className="section-title">Profilim</h2></div>
+        <section className="panel settings-profile p-5 sm:p-6">
+          <div className="flex flex-wrap items-center gap-2"><UserRound size={17} className="text-indigo-600"/><h2 className="section-title flex-1">Profilim</h2><button type="button" onClick={openEditor} className="secondary-button">Profili Düzenle</button></div>
           {currentMember ? <div className="mt-5 flex flex-col gap-5 sm:flex-row sm:items-center">
             <Avatar name={currentMember.displayName ?? "Ad bilgisi yok"} initials={memberInitials(currentMember)} src={avatarPreview ?? currentMember.avatarUrl} size="xl" className="ring-4" />
             <div className="min-w-0 flex-1">
@@ -210,30 +221,6 @@ export function SettingsView({ initialData }: { initialData: SettingsData }) {
             </div>
           </div> : <p className="mt-4 text-sm text-rose-600" role="alert">Profil bilgileri yüklenemedi.</p>}
         </section>
-        <section className="panel p-5 sm:p-6">
-          <div className="flex items-center gap-2"><Building2 size={17} className="text-indigo-600"/><h2 className="section-title">Kişiler</h2></div>
-          <div className="mt-5 divide-y divide-slate-100">
-            {members.length ? members.map((member) => <div key={member.id} className="flex items-center gap-4 py-4 first:pt-0 last:pb-0">
-              <Avatar name={member.displayName ?? "Ad bilgisi yok"} initials={memberInitials(member)} src={member.avatarUrl} size="lg" />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-slate-900">{member.displayName ?? "Ad bilgisi yok"}</p>
-                {member.email ? <p className="truncate text-xs text-slate-400">{member.email}</p> : null}
-                <p className="mt-0.5 text-[11px] text-slate-400">{member.role === "owner" ? "Çalışma alanı sahibi" : "Çalışma alanı üyesi"}</p>
-              </div>
-              {member.isCurrentUser ? <button type="button" onClick={openEditor} className="secondary-button">Profili Düzenle</button> : null}
-            </div>) : <p className="py-4 text-sm text-slate-400">Çalışma alanı üyesi bulunamadı.</p>}
-          </div>
-        </section>
-        <section className="panel p-5 sm:p-6">
-          <h2 className="section-title">Çalışma Alanı</h2>
-          <dl className="mt-5 grid gap-4 sm:grid-cols-2">
-            <div><dt className="field-label">Çalışma alanı adı</dt><dd className="mt-1 text-sm font-semibold text-slate-800">{initialData.workspaceName}</dd></div>
-            <div><dt className="field-label">Üye sayısı</dt><dd className="mt-1 text-sm font-semibold text-slate-800">{members.length}</dd></div>
-          </dl>
-        </section>
-      </div>
-      <div className="space-y-6">
-        <PasswordChangeForm />
         <section className="settings-accordion panel overflow-hidden">
           <button
             type="button"
@@ -267,6 +254,31 @@ export function SettingsView({ initialData }: { initialData: SettingsData }) {
           </div></div>
           </div>
         </section>
+        <section className="panel p-5 sm:p-6">
+          <div className="flex items-center gap-2"><Building2 size={17} className="text-indigo-600"/><h2 className="section-title">Kişiler</h2></div>
+          <div className="mt-5 divide-y divide-slate-100">
+            {members.length ? members.map((member) => <div key={member.id} className="settings-member-row flex flex-wrap items-center gap-3 py-4 first:pt-0 last:pb-0 min-[430px]:flex-nowrap">
+              <Avatar name={member.displayName ?? "Ad bilgisi yok"} initials={memberInitials(member)} src={member.avatarUrl} size="lg" />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-slate-900">{member.displayName ?? "Ad bilgisi yok"}</p>
+                {member.email ? <p className="truncate text-xs text-slate-400">{member.email}</p> : null}
+                <p className="mt-0.5 text-[11px] text-slate-400">{member.role === "owner" ? "Çalışma alanı sahibi" : "Çalışma alanı üyesi"}</p>
+              </div>
+              {member.isCurrentUser ? <span className="badge bg-indigo-50">Siz</span> : null}
+            </div>) : <p className="py-4 text-sm text-slate-400">Çalışma alanı üyesi bulunamadı.</p>}
+          </div>
+        </section>
+        <section className="panel p-5 sm:p-6">
+          <h2 className="section-title">Çalışma Alanı</h2>
+          <dl className="mt-5 grid gap-4 sm:grid-cols-2">
+            <div><dt className="field-label">Çalışma alanı adı</dt><dd className="mt-1 text-sm font-semibold text-slate-800">{initialData.workspaceName}</dd></div>
+            <div><dt className="field-label">Üye sayısı</dt><dd className="mt-1 text-sm font-semibold text-slate-800">{members.length}</dd></div>
+          </dl>
+        </section>
+      </div>
+      <div className="space-y-6">
+        <PasswordChangeForm /><ThemeToggle />
+
       </div>
     </div>
 
@@ -289,3 +301,4 @@ export function SettingsView({ initialData }: { initialData: SettingsData }) {
     </div> : null}
   </>;
 }
+

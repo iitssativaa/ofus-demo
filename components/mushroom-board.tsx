@@ -7,6 +7,9 @@ import type { MushroomBoardNote, MushroomBoardNoteInput, MushroomNotePriority } 
 import { createMushroomBoardNote, deleteMushroomBoardNote, updateMushroomBoardNote } from "@/lib/supabase/mushroom-board-client";
 import { ThemedSelect } from "./themed-select";
 import { UserAvatar } from "./user-avatar";
+import { useWorkspace } from "./app-provider";
+import { useDialogFocus } from "./use-dialog-focus";
+import { toast } from "./toast";
 
 const priorityOptions = [
   { value: "1", label: "1. Öncelik" },
@@ -46,6 +49,7 @@ function dateLabel(value: string) {
 }
 
 export function MushroomBoard({ initialNotes, currentUserId }: { initialNotes: MushroomBoardNote[]; currentUserId: string }) {
+  const { users } = useWorkspace();
   const [notes, setNotes] = useState(() => sortNotes(initialNotes));
   const [editing, setEditing] = useState<MushroomBoardNote | null | undefined>(undefined);
   const [deleting, setDeleting] = useState<MushroomBoardNote | null>(null);
@@ -58,28 +62,27 @@ export function MushroomBoard({ initialNotes, currentUserId }: { initialNotes: M
     return map;
   }, new Map());
 
-  return <section className="panel mb-6 overflow-hidden" aria-labelledby="mushroom-board-title">
+  return <section className="mushroom-board panel overflow-hidden" aria-labelledby="mushroom-board-title">
     <div className="panel-header gap-3">
       <div className="flex min-w-0 items-center gap-3">
         <span className="shrink-0 rounded-lg bg-amber-50 p-2 text-amber-700"><StickyNote size={17} /></span>
-        <div className="min-w-0"><h2 id="mushroom-board-title" className="section-title">Mantar Pano</h2><p className="section-subtitle truncate">Ortak tarihli notlar ve kısa hatırlatmalar</p></div>
+        <div className="min-w-0"><h2 id="mushroom-board-title" className="section-title">Mantar Pano</h2><p className="section-subtitle">Ortak tarihli notlar ve kısa hatırlatmalar</p></div>
       </div>
-      <button type="button" onClick={() => { setError(""); setEditing(null); }} className="primary-button shrink-0"><Plus size={15} /><span>Not Ekle</span></button>
+      <button type="button" onClick={() => { setError(""); setEditing(null); }} className="secondary-button shrink-0"><Plus size={15} /><span>Not Ekle</span></button>
     </div>
     {error ? <p role="alert" className="mx-4 mt-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-medium text-rose-700 sm:mx-5">{error}</p> : null}
     {visible.length ? <div className="divide-y divide-slate-100">
-      {[...groups.entries()].map(([date, items]) => <div key={date} className="grid gap-2 px-4 py-3 sm:grid-cols-[9rem_minmax(0,1fr)] sm:px-5">
+      {[...groups.entries()].map(([date, items]) => <div key={date} className="grid gap-2 px-4 py-3 ofus-note-group sm:px-5">
         <div className="flex items-center gap-2 self-start pt-2 text-xs font-semibold text-slate-600"><CalendarDays size={14} className="text-slate-400" /><time dateTime={date}>{dateLabel(date)}</time></div>
-        <div className="space-y-2">{items.map((note) => <article key={note.id} className={`group flex min-w-0 items-start gap-3 rounded-lg border border-slate-200 border-l-[3px] px-3 py-2.5 ${priorityStyles[note.priority]}`}>
-          <div className="min-w-0 flex-1">
+        <div className="space-y-2">{items.map((note) => <article key={note.id} className={`board-note group flex min-w-0 flex-wrap items-start gap-3 rounded-lg border border-slate-200 border-l-[3px] px-3 py-2.5 ${priorityStyles[note.priority]}`}>
+          <UserAvatar userId={note.createdBy} size="lg" /><div className="board-note-content min-w-0 flex-1"><p className="mb-2 text-sm font-medium">{users.find((user) => user.id === note.createdBy)?.name ?? "Bilinmeyen kullanıcı"}</p>
             <p className="whitespace-pre-wrap break-words text-sm leading-5 text-slate-800">{note.content}</p>
             <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] text-slate-500">
-              <UserAvatar userId={note.createdBy} size="sm" showName />
-              <span aria-hidden="true">·</span><span className="font-semibold">{priorityLabels[note.priority]}</span>
+              <span className="font-semibold">{priorityLabels[note.priority]}</span>
               {note.updatedAt !== note.createdAt ? <><span aria-hidden="true">·</span><span>Düzenlendi</span></> : null}
             </div>
           </div>
-          {note.createdBy === currentUserId ? <div className="flex shrink-0 items-center gap-1" aria-label="Not seçenekleri">
+          {note.createdBy === currentUserId ? <div className="board-note-actions flex shrink-0 items-center gap-1" aria-label="Not seçenekleri">
             <button type="button" onClick={() => { setError(""); setEditing(note); }} className="icon-button" aria-label="Notu düzenle"><Pencil size={14} /></button>
             <button type="button" onClick={() => setDeleting(note)} className="icon-button text-rose-600" aria-label="Notu sil"><Trash2 size={14} /></button>
           </div> : <MoreHorizontal size={15} className="mt-1 shrink-0 text-slate-300" aria-hidden="true" />}
@@ -93,7 +96,9 @@ export function MushroomBoard({ initialNotes, currentUserId }: { initialNotes: M
         setNotes((current) => editing ? current.map((note) => note.id === saved.id ? saved : note) : [...current, saved]);
         setError("");
         setEditing(undefined);
+        toast.show(editing ? "recordUpdated" : "noteAdded", { message: editing ? "Not güncellendi" : "Not eklendi" });
       } catch {
+        toast.show("saveError", { message: editing ? "Not güncellenemedi" : "Not eklenemedi" });
         throw new Error(editing ? "Not güncellenemedi." : "Not eklenemedi.");
       }
     }} /> : null}
@@ -103,9 +108,11 @@ export function MushroomBoard({ initialNotes, currentUserId }: { initialNotes: M
         setNotes((current) => current.filter((note) => note.id !== deleting.id));
         setDeleting(null);
         setError("");
+        toast.show("recordDeleted", { message: "Not silindi" });
       } catch {
         setDeleting(null);
         setError("Not silinemedi. Lütfen tekrar deneyin.");
+        toast.show("saveError", { message: "Not silinemedi" });
       }
     }} /> : null}
   </section>;
@@ -119,6 +126,7 @@ function MushroomNoteForm({ note, onCancel, onSave }: { note?: MushroomBoardNote
   const [submitting, setSubmitting] = useState(false);
   const lock = useRef(false);
   const close = () => { if (!lock.current && !submitting) onCancel(); };
+  useDialogFocus(true, close);
   const requestId = useRef("");
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -156,6 +164,7 @@ function DeleteNoteDialog({ note, onCancel, onDelete }: { note: MushroomBoardNot
   const [deleting, setDeleting] = useState(false);
   const deleteLock = useRef(false);
   const close = () => { if (!deleteLock.current && !deleting) onCancel(); };
+  useDialogFocus(true, close);
   return <div className="responsive-dialog z-[80]" role="alertdialog" aria-modal="true" aria-labelledby="delete-note-title">
     <button type="button" className="absolute inset-0" onClick={close} aria-label="Silme onayını kapat" />
     <div className="responsive-dialog-panel max-w-md p-5">
@@ -164,3 +173,4 @@ function DeleteNoteDialog({ note, onCancel, onDelete }: { note: MushroomBoardNot
     </div>
   </div>;
 }
+

@@ -1,0 +1,5 @@
+interface:
+  display_name: "Migration Safety"
+  short_description: "Plan and verify database migrations without data or rollout surprises"
+policy:
+  allow_implicit_invocation: true

@@ -399,6 +399,8 @@ export type Database = {
           created_by: string | null
           email: string | null
           id: string
+          linkedin_url: string | null
+          logo_url: string | null
           name: string
           notes: string | null
           phone: string | null
@@ -412,6 +414,8 @@ export type Database = {
           created_by?: string | null
           email?: string | null
           id?: string
+          linkedin_url?: string | null
+          logo_url?: string | null
           name: string
           notes?: string | null
           phone?: string | null
@@ -425,6 +429,8 @@ export type Database = {
           created_by?: string | null
           email?: string | null
           id?: string
+          linkedin_url?: string | null
+          logo_url?: string | null
           name?: string
           notes?: string | null
           phone?: string | null

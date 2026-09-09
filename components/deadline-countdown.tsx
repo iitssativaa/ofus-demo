@@ -58,8 +58,8 @@ export function DeadlineCountdown({ dueAt, className = "" }: { dueAt?: string; c
   const deadline = dueAt ? Date.parse(dueAt) : Number.NaN;
   if (!Number.isFinite(deadline) || !now) return null;
 
-  const remaining = deadline - now;
-  const overdue = remaining <= 0;
+  const overdue = deadline <= now;
+  const remaining = Math.max(0, deadline - now);
   const tone = overdue || remaining < DAY
     ? "bg-rose-50 text-rose-600"
     : remaining <= 2 * DAY

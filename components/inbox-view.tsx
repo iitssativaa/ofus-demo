@@ -1,53 +1,44 @@
 "use client";
 
-import { useState } from "react";
-import { Ban, Bell, CalendarClock, CheckCircle2, CircleDot, ListPlus, Pencil, StickyNote, UserPlus } from "lucide-react";
-import { recentTaskActivities } from "@/lib/task-selectors";
+import Link from "next/link";
+import { useCallback, useMemo, useState } from "react";
+import { Ban, Bell, CalendarClock, CheckCircle2, CircleDot, ListPlus, Pencil, Search, StickyNote, UserPlus } from "lucide-react";
+import { localDate, recentTaskActivities } from "@/lib/task-selectors";
 import { formatDate } from "@/lib/utils";
 import { useWorkspace } from "./app-provider";
 import { PageHeader } from "./page-header";
+import { ThemedSelect } from "./themed-select";
 import { UserAvatar } from "./user-avatar";
-import type { WorkspaceActivity } from "@/lib/types";
+import type { Task, TaskActivity, WorkspaceActivity } from "@/lib/types";
+import "./inbox-view.css";
 
-const icons: Record<string, typeof Bell> = {
-  task_created: ListPlus,
-  assignee_changed: UserPlus,
-  due_date_changed: CalendarClock,
-  status_changed: Pencil,
-  task_completed: CheckCircle2,
-  task_cancelled: Ban,
-  mushroom_note_created: StickyNote,
+const icons: Record<string, typeof Bell> = { task_created: ListPlus, assignee_changed: UserPlus, due_date_changed: CalendarClock, status_changed: Pencil, task_completed: CheckCircle2, task_cancelled: Ban, mushroom_note_created: StickyNote };
+type InboxItem = { kind: "task"; activity: TaskActivity; task: Task } | { kind: "workspace"; activity: WorkspaceActivity };
+const dateKey = (value: string) => localDate(value);
+const timeFormatter = new Intl.DateTimeFormat("tr-TR", { hour: "2-digit", minute: "2-digit" });
+const groupDateFormatter = new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "long", year: "numeric" });
+const timeLabel = (value: string) => timeFormatter.format(new Date(value));
+const groupLabel = (value: string) => {
+  const today = new Date(); const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1); const key = dateKey(value);
+  const dateValue = (date: Date) => [date.getFullYear(), String(date.getMonth() + 1).padStart(2, "0"), String(date.getDate()).padStart(2, "0")].join("-");
+  if (key === dateValue(today)) return "Bugün"; if (key === dateValue(yesterday)) return "Dün";
+  return groupDateFormatter.format(new Date(`${key}T12:00:00`));
 };
-const timeLabel = (value: string) => new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(value));
 
 export function InboxView({ workspaceActivities }: { workspaceActivities: WorkspaceActivity[] }) {
-  const { tasks, companies, projects, users, taskError, setSelectedTask } = useWorkspace();
-  const recentTasks = [...tasks].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 5);
-  const activities = [
-    ...recentTaskActivities(tasks).map((item) => ({ kind: "task" as const, ...item })),
-    ...workspaceActivities.map((activity) => ({ kind: "workspace" as const, activity })),
-  ].sort((a, b) => b.activity.createdAt.localeCompare(a.activity.createdAt) || b.activity.id.localeCompare(a.activity.id));
-  const relationLabel = (companyId: string, projectId: string) => [companies.find((item) => item.id === companyId)?.name, projects.find((item) => item.id === projectId)?.name].filter(Boolean).join(" · ");
-  const [tab, setTab] = useState<"new" | "activity">("new");
-
-  return <>
-    <PageHeader eyebrow="İş hareketleri" title="Gelen Kutusu" description="Yeni iş girişlerini ve çalışma alanındaki son iş hareketlerini izleyin." />
-    {taskError ? <p role="alert" className="mb-4 text-sm text-rose-700">{taskError}</p> : null}
-    <div className="segment-control mb-4 grid w-full max-w-md grid-cols-2 rounded-xl border p-1" role="tablist" aria-label="Gelen Kutusu görünümü"><button type="button" role="tab" aria-selected={tab === "new"} onClick={() => setTab("new")} className={`segment-button min-h-10 rounded-lg px-2 text-xs font-semibold ${tab === "new" ? "segment-button-active" : "text-slate-500"}`}>Yeni İş Girişleri</button><button type="button" role="tab" aria-selected={tab === "activity"} onClick={() => setTab("activity")} className={`segment-button min-h-10 rounded-lg px-2 text-xs font-semibold ${tab === "activity" ? "segment-button-active" : "text-slate-500"}`}>İş Hareketleri</button></div>
-    <div className="inbox-panels">
-      <section className={`panel overflow-hidden ${tab === "new" ? "block" : "hidden"}`} role="tabpanel"><div className="panel-header"><div className="flex items-center gap-3"><span className="rounded-lg bg-indigo-50 p-2 text-indigo-600"><ListPlus size={17} /></span><div><h2 className="section-title">Yeni İş Girişleri</h2><p className="section-subtitle">Yakın zamanda oluşturulan görevler</p></div></div></div>
-        <div className="divide-y divide-slate-100">{recentTasks.length ? recentTasks.map((task) => <button key={task.id} onClick={() => setSelectedTask(task)} className="flex w-full items-center gap-4 p-4 text-left hover:bg-slate-50"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-500"><CircleDot size={16} /></span><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-slate-800">{task.title}</p><p className="mt-1 truncate text-[11px] text-slate-400">{relationLabel(task.companyId, task.projectId)}</p></div><div className="hidden text-right sm:block"><p className="text-xs font-semibold text-slate-600">{formatDate(task.createdAt, true)}</p><p className="mt-1 text-[10px] text-slate-400">Oluşturuldu</p></div><UserAvatar userId={task.assigneeId} size="sm" /></button>) : <p className="p-8 text-center text-sm text-slate-400">Henüz görev yok.</p>}</div>
-      </section>
-      <section className={`panel h-fit overflow-hidden ${tab === "activity" ? "block" : "hidden"}`} role="tabpanel"><div className="panel-header"><div className="flex items-center gap-3"><span className="rounded-lg bg-violet-50 p-2 text-violet-600"><Bell size={17} /></span><div><h2 className="section-title">İş Hareketleri</h2><p className="section-subtitle">Son {activities.length} iş hareketi · en yeni önce</p></div></div></div>
-        {activities.length ? <div className="divide-y divide-slate-100">{activities.map((item) => {
-          const { activity } = item;
-          const Icon = icons[activity.eventType ?? ""] ?? Pencil;
-          const actor = users.find((user) => user.id === activity.userId);
-          if (item.kind === "workspace") return <article key={activity.id} className="relative bg-white p-4"><div className="flex gap-3"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-700"><Icon size={16} /></span><div className="min-w-0 flex-1"><p className="text-sm font-semibold leading-5 text-slate-800"><span className="font-bold">{actor?.name ?? "Bilinmeyen kullanıcı"}</span> {activity.description}</p><p className="mt-1 text-[11px] text-slate-400">Mantar Pano</p><div className="mt-2 flex items-center gap-2"><UserAvatar userId={activity.userId} size="sm" /><time dateTime={activity.createdAt} className="text-[10px] text-slate-400">{timeLabel(activity.createdAt)}</time></div></div></div></article>;
-          const { task } = item;
-          return <article key={activity.id} className="relative bg-white p-4"><div className="flex gap-3"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-700"><Icon size={16} /></span><div className="min-w-0 flex-1"><button onClick={() => setSelectedTask(task)} className="text-left text-sm font-semibold leading-5 text-slate-800 hover:text-indigo-700"><span className="block">{activity.description}</span><span className="mt-1 block text-xs font-medium">{task.title}</span></button><p className="mt-1 text-[11px] text-slate-400">{relationLabel(task.companyId, task.projectId)}</p><div className="mt-2 flex items-center gap-2"><UserAvatar userId={activity.userId} size="sm" /><span className="text-[10px] text-slate-400">{actor?.name ?? "Bilinmeyen kullanıcı"} · <time dateTime={activity.createdAt}>{timeLabel(activity.createdAt)}</time></span></div></div></div></article>;
-        })}</div> : <div className="px-6 py-14 text-center"><CheckCircle2 size={22} className="mx-auto text-emerald-500" /><p className="mt-3 text-sm font-semibold text-slate-700">Henüz iş hareketi yok.</p><p className="mt-1 text-xs text-slate-400">Yeni iş hareketleri burada görünür.</p></div>}
-      </section>
-    </div>
-  </>;
+  const { tasks, companies, projects, users, taskError } = useWorkspace();
+  const [tab, setTab] = useState<"new" | "activity">("new"); const [search, setSearch] = useState(""); const [companyFilter, setCompanyFilter] = useState("all"); const [personFilter, setPersonFilter] = useState("all"); const [fromDate, setFromDate] = useState(""); const [toDate, setToDate] = useState("");
+  const companyNames = useMemo(() => new Map(companies.map((item) => [item.id, item.name])), [companies]);
+  const projectNames = useMemo(() => new Map(projects.map((item) => [item.id, item.name])), [projects]);
+  const userNames = useMemo(() => new Map(users.map((item) => [item.id, item.name])), [users]);
+  const relationLabel = useCallback((companyId: string, projectId: string) => [companyNames.get(companyId), projectNames.get(projectId)].filter(Boolean).join(" · "), [companyNames, projectNames]);
+  const activityItems = useMemo<InboxItem[]>(() => [...recentTaskActivities(tasks, Number.MAX_SAFE_INTEGER).map(({ activity, task }) => ({ kind: "task" as const, activity, task })), ...workspaceActivities.map((activity) => ({ kind: "workspace" as const, activity }))].sort((a, b) => b.activity.createdAt.localeCompare(a.activity.createdAt) || b.activity.id.localeCompare(a.activity.id)), [tasks, workspaceActivities]);
+  const query = search.trim().toLocaleLowerCase("tr-TR");
+  const match = useCallback((createdAt: string, companyId: string | undefined, personId: string, text: string) => { const day = dateKey(createdAt); return (!query || text.toLocaleLowerCase("tr-TR").includes(query)) && (companyFilter === "all" || companyId === companyFilter) && (personFilter === "all" || personId === personFilter) && (!fromDate || day >= fromDate) && (!toDate || day <= toDate); }, [query, companyFilter, personFilter, fromDate, toDate]);
+  const visibleActivities = useMemo(() => activityItems.filter((item) => { const taskText = item.kind === "task" ? `${item.task.title} ${item.task.description} ${relationLabel(item.task.companyId, item.task.projectId)}` : ""; return match(item.activity.createdAt, item.kind === "task" ? item.task.companyId : undefined, item.activity.userId, `${item.activity.description} ${userNames.get(item.activity.userId) ?? ""} ${taskText}`); }), [activityItems, match, relationLabel, userNames]);
+  const activityGroups = useMemo(() => { const groups = new Map<string, InboxItem[]>(); visibleActivities.forEach((item) => { const key = dateKey(item.activity.createdAt); groups.set(key, [...(groups.get(key) ?? []), item]); }); return [...groups.entries()]; }, [visibleActivities]);
+  const filteredNewTasks = useMemo(() => [...tasks].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).filter((task) => match(task.createdAt, task.companyId, task.assigneeId, `${task.title} ${task.description} ${relationLabel(task.companyId, task.projectId)}`)), [tasks, match, relationLabel]);
+  const filterBar = <div className="ofus-inbox-filters"><label className="ofus-inbox-search"><Search size={16} /><span className="sr-only">Gelen kutusunda ara</span><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="İş, kişi veya firma ara" /></label><ThemedSelect ariaLabel="Firmaya göre filtrele" value={companyFilter} onValueChange={setCompanyFilter} options={[{ value: "all", label: "Tüm firmalar" }, ...companies.map((company) => ({ value: company.id, label: company.name }))]} /><ThemedSelect ariaLabel="Kişiye göre filtrele" value={personFilter} onValueChange={setPersonFilter} options={[{ value: "all", label: "Tüm kişiler" }, ...users.map((user) => ({ value: user.id, label: user.name }))]} /><label className="ofus-inbox-date"><span>Başlangıç</span><input type="date" lang="tr" value={fromDate} onChange={(event) => setFromDate(event.target.value)} /></label><label className="ofus-inbox-date"><span>Bitiş</span><input type="date" lang="tr" value={toDate} onChange={(event) => setToDate(event.target.value)} /></label></div>;
+  return <><PageHeader eyebrow="İş hareketleri" title="Gelen Kutusu" description="Yeni iş girişlerini ve çalışma alanındaki son iş hareketlerini izleyin." />{taskError ? <p role="alert" className="mb-4 text-sm text-rose-700">{taskError}</p> : null}<section className="panel ofus-inbox-surface"><div className="ofus-inbox-tabs" role="tablist" aria-label="Gelen Kutusu görünümü"><button type="button" role="tab" aria-selected={tab === "new"} onClick={() => setTab("new")}><ListPlus size={16} />Yeni İş Girişleri <span>{tasks.length}</span></button><button type="button" role="tab" aria-selected={tab === "activity"} onClick={() => setTab("activity")}><Bell size={16} />İş Hareketleri <span>{activityItems.length}</span></button></div>{filterBar}{tab === "new" ? <div role="tabpanel" className="ofus-inbox-table"><div className="ofus-inbox-head"><span>İş</span><span>Firma / Proje</span><span>Sorumlu</span><span>Tarih</span></div>{filteredNewTasks.length ? filteredNewTasks.map((task) => <Link key={task.id} href={`/tasks/${task.id}?from=inbox`} className="ofus-inbox-new-row"><span className="ofus-inbox-task"><CircleDot size={17} /><span><b>{task.title}</b><small>Yeni iş girişi</small></span></span><span className="ofus-inbox-muted">{relationLabel(task.companyId, task.projectId) || "—"}</span><span className="ofus-inbox-person"><UserAvatar userId={task.assigneeId} size="sm" /><span>{userNames.get(task.assigneeId) ?? "—"}</span></span><time dateTime={task.createdAt}>{formatDate(task.createdAt, true)}</time></Link>) : <p className="ofus-inbox-empty">Bu filtrelerle eşleşen iş girişi bulunamadı.</p>}</div> : <div role="tabpanel" className="ofus-inbox-table"><div className="ofus-inbox-head"><span>İş</span><span>Değişiklik</span><span>Kişi / Tarih</span><span /></div>{activityGroups.length ? activityGroups.map(([key, items]) => <section key={key} className="ofus-inbox-group"><h2>{groupLabel(`${key}T12:00:00`)} <span>{items.length}</span></h2>{items.map((item) => { const { activity } = item; const Icon = icons[activity.eventType ?? ""] ?? Pencil; const isTask = item.kind === "task"; return <article key={`${item.kind}-${activity.id}`} className="ofus-inbox-activity-row"><span className="ofus-inbox-event"><span className={`ofus-inbox-event-icon ${isTask ? "" : "is-workspace"}`}><Icon size={16} /></span><span><b>{isTask ? item.task.title : "Mantar Pano"}</b><small>{isTask ? (item.task.description || relationLabel(item.task.companyId, item.task.projectId) || "Görev") : activity.description}</small></span></span><p className="ofus-inbox-change">{activity.description}</p><span className="ofus-inbox-person"><UserAvatar userId={activity.userId} size="sm" /><span>{userNames.get(activity.userId) ?? "Bilinmeyen kullanıcı"}<time dateTime={activity.createdAt}>{timeLabel(activity.createdAt)}</time></span></span>{isTask ? <Link className="ofus-inbox-task-link" href={`/tasks/${item.task.id}?from=inbox`}>Göreve git</Link> : <span />}</article>; })}</section>) : <div className="ofus-inbox-empty"><CheckCircle2 size={22} /><p>Bu filtrelerle eşleşen iş hareketi bulunamadı.</p></div>}</div>}</section></>;
 }
+

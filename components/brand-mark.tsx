@@ -1,3 +1,3 @@
 export function BrandMark({ className = "" }: { className?: string }) {
-  return <span aria-label="OfUs" className={`app-wordmark inline-flex items-baseline whitespace-nowrap text-white ${className}`}><span aria-hidden="true" className="app-wordmark-of">Of</span><span aria-hidden="true" className="app-wordmark-us">Us</span><span aria-hidden="true" className="app-wordmark-point" /></span>;
+  return <span className={`ofus-brand ${className}`} aria-label="OfUs"><svg viewBox="-5 -5 78 63" aria-hidden="true"><circle cx="34" cy="26.5" r="24" fill="none" stroke="currentColor" strokeWidth="7.5" /></svg><span>OfUs</span></span>;
 }
