@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import type { CalendarEvent } from "@/lib/calendar-event-types";
-import type { MushroomBoardData } from "@/lib/supabase/mushroom-board";
 import { dashboardSummary, localDate, localTime, memberWorkload, taskIsOverdue } from "@/lib/task-selectors";
 import type { Task, User } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
@@ -11,7 +10,8 @@ import { useWorkspace } from "./app-provider";
 import { DeadlineCountdown, FutureCountdown } from "./deadline-countdown";
 import { RingMetric, MonthlyChart, TeamGauge } from "./dashboard/metrics";
 import { sizePoints } from "@/lib/types";
-import { MushroomBoard } from "./mushroom-board";
+import { PointHistory } from "./dashboard/point-history";
+import { TaskBoard } from "./task-board";
 import { UserAvatar } from "./user-avatar";
 
 function CategoryBadge({ category }: { category: CalendarEvent["category"] }) {
@@ -76,7 +76,7 @@ function DashboardEventRow({ event, timeZone, users }: { event: CalendarEvent; t
   </Link>;
 }
 
-export function DashboardView({ calendarEvents, mushroomBoard }: { calendarEvents: CalendarEvent[]; mushroomBoard: MushroomBoardData }) {
+export function DashboardView({ calendarEvents }: { calendarEvents: CalendarEvent[] }) {
   const { tasks, users, projects, companies, taskError } = useWorkspace();
   const now = new Date();
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -89,23 +89,27 @@ export function DashboardView({ calendarEvents, mushroomBoard }: { calendarEvent
   const onTimeRate = datedCompletions.length ? Math.round(onTime / datedCompletions.length * 100) : null;
   const activeProjects = projects.filter((project) => project.status !== "On hold");
   const upcomingEvents = [...calendarEvents].filter((event) => new Date(event.startsAt).getTime() > now.getTime()).sort((a, b) => a.startsAt.localeCompare(b.startsAt)).slice(0, 5);
-  const workloads = users.map((user) => ({ user, ...memberWorkload(active, user.id) }));
+  const workloads = [...users].sort((a, b) => a.name.localeCompare(b.name, "tr") || a.id.localeCompare(b.id)).map((user) => ({ user, ...memberWorkload(active, user.id) }));
   const totalPoints = workloads.reduce((sum, member) => sum + member.points, 0);
   return <>
     <h1 className="sr-only">Genel Bakış</h1>
     {taskError ? <p role="alert" className="mb-4 text-sm text-rose-700">{taskError}</p> : null}
     <div className="ofus-dashboard">
-      <section className="panel"><h2 className="section-title">Genel Durum</h2><p><strong className="ofus-stat-number">{completedPoints}</strong> <span className="text-sm text-slate-400">puan</span></p><p className="mt-2 text-sm text-slate-400">Tamamlanan görevlerin toplam puanı</p><div className="mt-10 space-y-5">{users.map((user) => <div key={user.id} className="flex items-center justify-between gap-3"><UserAvatar userId={user.id} showName /><span className="text-sm font-medium">{completed.filter((task) => task.assigneeId === user.id).reduce((sum, task) => sum + sizePoints[task.size], 0)} puan</span></div>)}</div></section>
+      <div className="ofus-dashboard-top">
+      <section className="panel chart-overall"><h2 className="section-title">Genel Durum</h2><div className="chart-overall-total"><p><strong className="ofus-stat-number">{completedPoints}</strong> <span>puan</span></p><span>{users.length} kişi</span></div><PointHistory tasks={completed} now={now} /></section>
       <section className="panel ofus-summary"><div className="flex justify-between"><h2 className="section-title">Görev Özeti</h2><span className="text-sm text-slate-500">{now.getFullYear()}</span></div><div className="flex gap-10"><div><p className="text-sm text-slate-500">Toplam Görev</p><p className="ofus-stat-number mt-2">{tasks.filter((task) => !task.cancelledAt).length}</p></div><div className="text-emerald-500"><p className="text-sm">Tamamlanan</p><p className="ofus-stat-number mt-2">{completed.length}</p></div></div><MonthlyChart counts={counts} month={now.getMonth()} /></section>
-      <section className="panel"><h2 className="section-title">Aktif Görevler</h2><Link href="/tasks"><RingMetric value={active.length} total={active.length + completed.length} label="Görev" /></Link><div className="ofus-legend"><span>Bugün: {dueToday.length}</span><span>Geciken: {overdue.length}</span></div></section>
-      <div className="ofus-cork"><MushroomBoard initialNotes={mushroomBoard.notes} currentUserId={mushroomBoard.currentUserId} /></div>
       <section className="panel"><h2 className="section-title">Ekip Durumu</h2><TeamGauge percent={onTimeRate} /></section>
+      </div>
+      <section className="panel ofus-dashboard-board" aria-label="Görev Panosu"><TaskBoard dashboard /></section>
+      <div className="ofus-dashboard-bottom">
+      <section className="panel"><h2 className="section-title">Aktif Görevler</h2><Link href="/tasks"><RingMetric value={active.length} total={active.length + completed.length} label="Görev" /></Link><div className="ofus-legend"><span>Bugün: {dueToday.length}</span><span>Geciken: {overdue.length}</span></div></section>
       <section className="panel"><h2 className="section-title">Aktif Projeler</h2><Link href="/projects"><RingMetric value={activeProjects.length} total={projects.length} label="Proje" color="var(--brand)" /></Link><div className="ofus-legend"><span>Aktif: {activeProjects.length}</span><span>Beklemede: {projects.length - activeProjects.length}</span></div></section>
-      <section className="panel"><h2 className="section-title">İş Yükü</h2><p className="text-sm text-slate-500">Toplam görev puanı</p><p className="ofus-stat-number mt-2">{totalPoints}</p><div className="mt-5 flex h-2.5 overflow-hidden rounded-full bg-slate-100">{workloads.map(({ user, points }) => <span key={user.id} style={{ width: `${totalPoints ? points / totalPoints * 100 : 0}%`, background: user.color }} />)}</div><div className="mt-7 space-y-5">{workloads.map(({ user, points, count }) => <div key={user.id} className="flex flex-wrap items-center justify-between gap-2"><UserAvatar userId={user.id} showName /><span className="text-xs text-slate-400">{points} puan · {count} görev</span></div>)}</div><p className="mt-7 border-t border-slate-100 pt-4 text-xs text-slate-400">S = 1 · M = 2 · L = 4 · XL = 8</p></section>
+      <section className="panel chart-workload"><h2 className="section-title">İş Yükü</h2><p className="chart-workload-label">Toplam görev puanı</p><strong className="ofus-stat-number">{totalPoints}</strong><div className="chart-workload-bar">{workloads.map(({ user, points }) => <span key={user.id} style={{ width: `${totalPoints ? points / totalPoints * 100 : 0}%`, background: user.color }} />)}</div><div className="chart-workload-people">{workloads.map(({ user, points, count }) => <div key={user.id}><i style={{ borderColor: user.color }} /><span className="chart-workload-name" title={`${user.name}: ${completed.filter((task) => task.assigneeId === user.id).reduce((sum, task) => sum + sizePoints[task.size], 0)} tamamlanan puan`}>{user.firstName || user.name}</span><b>{points} puan</b><span>{count} görev</span></div>)}</div><p className="chart-workload-note">S = 1 · M = 2 · L = 4 · XL = 8<br />{active.length} aktif göreve göre dağılım</p></section>
       <section className="panel"><h2 className="section-title">Yaklaşan Görevler</h2>{upcoming.length ? upcoming.map((task) => <DashboardTaskRow key={task.id} task={task} />) : <p className="py-8 text-sm text-slate-400">Yaklaşan görev yok.</p>}<Link href="/tasks" className="text-link mt-6">Tüm görevleri gör <ArrowRight size={14} /></Link></section>
       <section className="panel ofus-focus"><div className="flex justify-between gap-3"><h2 className="section-title">Bugünün Odağı</h2><Link href="/tasks" className="text-link self-start">Tümünü gör <ArrowRight size={14} /></Link></div>{focus.length ? focus.map((task) => <DashboardTaskRow key={task.id} task={task} focus />) : <p className="py-8 text-sm text-slate-400">Şu anda odaklanmanız gereken aktif görev yok.</p>}</section>
       <section className="panel"><h2 className="section-title">Projeler</h2>{activeProjects.slice(0, 3).map((project) => { const projectTasks = tasks.filter((task) => task.projectId === project.id && !task.cancelledAt); const done = projectTasks.filter((task) => task.status === "Done").length; const progress = projectTasks.length ? Math.round(done / projectTasks.length * 100) : 0; return <Link key={project.id} href={`/projects/${project.id}`} className="block border-b border-slate-100 py-4 last:border-0"><p className="font-medium">{project.name}</p><p className="mt-1 text-xs text-slate-400">{companies.find((company) => company.id === project.companyId)?.name}</p><div className="ofus-progress"><span style={{ width: `${progress}%` }} /></div><p className="text-xs text-slate-500">{done} / {projectTasks.length} görev tamamlandı</p></Link>; })}{!activeProjects.length ? <p className="py-8 text-sm text-slate-400">Aktif proje yok.</p> : null}</section>
       <section className="panel"><h2 className="section-title">Yaklaşan Etkinlikler</h2>{upcomingEvents.length ? upcomingEvents.map((event) => <DashboardEventRow key={event.id} event={event} timeZone={timeZone} users={users} />) : <p className="py-8 text-sm text-slate-400">Yaklaşan etkinlik yok.</p>}<Link href="/calendar" className="text-link mt-6">Takvime git <ArrowRight size={14} /></Link></section>
+      </div>
     </div>
   </>;
 }

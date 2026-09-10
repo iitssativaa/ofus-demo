@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "../components/urgency.css";
+
 
 @font-face { font-family: "Luxora Grotesk"; src: url("/ofus/fonts/LuxoraGrotesk-Regular.woff2") format("woff2"); font-weight: 400; font-display: swap; }
 @font-face { font-family: "Luxora Grotesk"; src: url("/ofus/fonts/LuxoraGrotesk-Medium.woff2") format("woff2"); font-weight: 500 600; font-display: swap; }
@@ -414,17 +416,17 @@ button { cursor: pointer; }
 .ofus-account { position: relative; }
 .ofus-account-menu { position: absolute; display: none; flex-direction: column; gap: 12px; left: 35px; bottom: -10px; width: 250px; padding: 22px; background: var(--surface); border: 1px solid var(--border-subtle); box-shadow: 0 6px 24px #535d831c; border-radius: 12px; }
 .ofus-account:focus-within .ofus-account-menu, .ofus-account:hover .ofus-account-menu { display: flex; }
-.ofus-main { min-width: 0; margin-left: clamp(145px,9.697vw,192px); padding: 40px clamp(20px,2.02vw,40px) 48px 0; }
+.ofus-main { min-width: 0; margin-left: calc(2 * clamp(16px, 1.607vw, 31px) + 85px); padding: 40px clamp(20px,2.02vw,40px) 48px 0; }
 .ofus-page { min-width: 0; }
 .ofus-mobile-header, .ofus-mobile-overlay { display: none; }
 .ofus-skip { position: fixed; top: -100px; left: 24px; z-index: 100; padding: 12px; background: var(--surface); }
 .ofus-skip:focus { top: 12px; }
 .ofus-page-summary { display: flex; flex-wrap: wrap; gap: 30px; margin: -14px 0 30px; color: var(--color-slate-500); font-size: 14px; }
 .ofus-page-summary span::before { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); margin-right: 8px; }
-.ofus-dashboard { display: grid; grid-template-columns: 1fr 1.2fr 1fr 1fr; gap: 20px; align-items: stretch; }
+.ofus-dashboard { display: flex; flex-direction: column; gap: 20px; }
 .ofus-dashboard .panel { padding: 32px; overflow: hidden; }
 .ofus-dashboard .panel-header { padding: 0 0 22px; min-height: auto; }
-.ofus-summary { grid-column: span 2; }
+.ofus-summary { min-width: 0; }
 .ofus-cork { grid-column: span 2; grid-row: span 2; }
 .ofus-cork > .panel { height: 100%; }
 .ofus-focus { grid-column: span 2; }

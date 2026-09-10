@@ -18,12 +18,12 @@ const subscribe = () => () => undefined;
 const clientReady = () => true;
 const serverReady = () => false;
 
-export function TaskWorkspace({ data, calendarEvents = [], calendarRoutines = [], mushroomBoard = { notes: [], currentUserId: "" }, loadError = "", view = "tasks", initialSelectedTaskId = null, taskReturnHref }: { data: TaskWorkspaceData; calendarEvents?: CalendarEvent[]; calendarRoutines?: CalendarRoutine[]; mushroomBoard?: MushroomBoardData; loadError?: string; view?: "tasks" | "dashboard" | "calendar" | "inbox"; initialSelectedTaskId?: string | null; taskReturnHref?: string }) {
+export function TaskWorkspace({ data, calendarEvents = [], calendarRoutines = [], loadError = "", view = "tasks", initialSelectedTaskId = null, taskReturnHref }: { data: TaskWorkspaceData; calendarEvents?: CalendarEvent[]; calendarRoutines?: CalendarRoutine[]; mushroomBoard?: MushroomBoardData; loadError?: string; view?: "tasks" | "dashboard" | "calendar" | "inbox"; initialSelectedTaskId?: string | null; taskReturnHref?: string }) {
   const ready = useSyncExternalStore(subscribe, clientReady, serverReady);
   if (!ready) return <div className="panel p-8 text-sm text-slate-500" role="status" data-page-motion-pending>Veriler yükleniyor…</div>;
   if (loadError && view !== "tasks") return <div className="panel p-6 text-sm text-rose-700" role="alert">{loadError} Lütfen sayfayı yenileyip tekrar deneyin.</div>;
   return <TaskDataProvider key={`${view}-${initialSelectedTaskId ?? "list"}`} data={data} initialSelectedTaskId={initialSelectedTaskId}>
-    {view === "dashboard" ? <DashboardView calendarEvents={calendarEvents} mushroomBoard={mushroomBoard} /> : view === "calendar" ? <CalendarView initialEvents={calendarEvents} initialRoutines={calendarRoutines} /> : view === "inbox" ? <InboxView workspaceActivities={data.workspaceActivities} /> : <TasksView loadError={loadError} />}
+    {view === "dashboard" ? <DashboardView calendarEvents={calendarEvents} /> : view === "calendar" ? <CalendarView initialEvents={calendarEvents} initialRoutines={calendarRoutines} /> : view === "inbox" ? <InboxView workspaceActivities={data.workspaceActivities} /> : <TasksView loadError={loadError} />}
     <QuickAddTask />
     <TaskDetail returnHref={taskReturnHref} routeNavigation={Boolean(initialSelectedTaskId)} />
     <TaskCompletionDialog />

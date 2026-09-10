@@ -1,0 +1,143 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="496" viewBox="0 0 512 496"><title>Çok mutlu</title><defs><style>
+      .ofus-emotion-cls-1 {
+        fill: #f2c94c;
+      }
+
+      .ofus-emotion-cls-2 {
+        stroke: #8de8bc;
+      }
+
+      .ofus-emotion-cls-2, .ofus-emotion-cls-3, .ofus-emotion-cls-4, .ofus-emotion-cls-5, .ofus-emotion-cls-6, .ofus-emotion-cls-7, .ofus-emotion-cls-8, .ofus-emotion-cls-9, .ofus-emotion-cls-10, .ofus-emotion-cls-11, .ofus-emotion-cls-12, .ofus-emotion-cls-13 {
+        fill: none;
+        stroke-linecap: round;
+      }
+
+      .ofus-emotion-cls-2, .ofus-emotion-cls-9 {
+        stroke-width: 7px;
+      }
+
+      .ofus-emotion-cls-14 {
+        fill: #345249;
+        font-family: ArialMT, Arial;
+        font-size: 25px;
+        isolation: isolate;
+      }
+
+      .ofus-emotion-cls-15 {
+        fill: #b7d957;
+      }
+
+      .ofus-emotion-cls-3 {
+        stroke: #a87921;
+      }
+
+      .ofus-emotion-cls-3, .ofus-emotion-cls-4, .ofus-emotion-cls-6, .ofus-emotion-cls-10, .ofus-emotion-cls-11, .ofus-emotion-cls-12, .ofus-emotion-cls-13 {
+        stroke-width: 14px;
+      }
+
+      .ofus-emotion-cls-16 {
+        fill: #fbd4aa;
+      }
+
+      .ofus-emotion-cls-4 {
+        stroke: #049769;
+      }
+
+      .ofus-emotion-cls-5 {
+        stroke-width: 7.71px;
+      }
+
+      .ofus-emotion-cls-5, .ofus-emotion-cls-6, .ofus-emotion-cls-12 {
+        stroke: #ad3041;
+      }
+
+      .ofus-emotion-cls-17 {
+        fill: #e9fff4;
+      }
+
+      .ofus-emotion-cls-18 {
+        fill: #f8b8b8;
+      }
+
+      .ofus-emotion-cls-19 {
+        fill: #049769;
+      }
+
+      .ofus-emotion-cls-7 {
+        stroke: #ddedaa;
+      }
+
+      .ofus-emotion-cls-7, .ofus-emotion-cls-8 {
+        stroke-width: 6px;
+      }
+
+      .ofus-emotion-cls-20 {
+        fill: #ddedaa;
+      }
+
+      .ofus-emotion-cls-21 {
+        fill: #f4a04b;
+      }
+
+      .ofus-emotion-cls-22 {
+        fill: #ef6464;
+      }
+
+      .ofus-emotion-cls-23 {
+        fill: #f9e5a3;
+      }
+
+      .ofus-emotion-cls-8 {
+        stroke: #a8eecf;
+      }
+
+      .ofus-emotion-cls-24 {
+        opacity: .95;
+      }
+
+      .ofus-emotion-cls-25 {
+        fill: #19cf94;
+      }
+
+      .ofus-emotion-cls-9 {
+        stroke: #19cf94;
+      }
+
+      .ofus-emotion-cls-10 {
+        stroke: #728f2b;
+      }
+
+      .ofus-emotion-cls-11, .ofus-emotion-cls-12 {
+        stroke-linejoin: round;
+      }
+
+      .ofus-emotion-cls-11, .ofus-emotion-cls-13 {
+        stroke: #ad5c26;
+      }
+
+      .ofus-emotion-cls-26 {
+        fill: #a8eecf;
+      }
+    </style></defs><g id="ofus-emotion-level-1-pariltilar">
+    <path class="ofus-emotion-cls-9" d="M93,116l-9-14M112,104l-3-16"/>
+    <path class="ofus-emotion-cls-9" d="M401,376l10,12M415,359l16,4"/>
+    <path class="ofus-emotion-cls-8" d="M406,115v20M396,125h20"/>
+    <path class="ofus-emotion-cls-8" d="M105,363v20M95,373h20"/>
+    <circle class="ofus-emotion-cls-26" cx="247" cy="62" r="5"/>
+    <circle class="ofus-emotion-cls-26" cx="67" cy="241" r="5"/>
+    <circle class="ofus-emotion-cls-26" cx="440" cy="272" r="5"/>
+    <circle class="ofus-emotion-cls-26" cx="260" cy="437" r="5"/>
+  </g>
+<g id="ofus-emotion-level-1-yuz">
+    <circle id="ofus-emotion-level-1-yuz-govdesi" class="ofus-emotion-cls-25" cx="256" cy="248" r="150"/>
+    <g id="ofus-emotion-level-1-gozler">
+      <path class="ofus-emotion-cls-4" d="M179,215c11-25,32-25,44,0"/>
+      <path class="ofus-emotion-cls-4" d="M289,215c12-25,33-25,44,0"/>
+    </g>
+    <path id="ofus-emotion-level-1-gulumseme" class="ofus-emotion-cls-19" d="M180,254c40,15,112,15,152,0-3,53-33,88-76,88s-73-35-76-88Z"/>
+    <path id="ofus-emotion-level-1-disler" class="ofus-emotion-cls-17" d="M192,267c37,11,91,11,128,0l-5,18c-35,10-83,10-118,0l-5-18Z"/>
+    <g id="ofus-emotion-level-1-gulme-cizgileri">
+      <path class="ofus-emotion-cls-2" d="M153,247l13,5"/>
+      <path class="ofus-emotion-cls-2" d="M346,252l13-5"/>
+    </g>
+  </g></svg>

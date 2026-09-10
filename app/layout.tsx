@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import "./globals.css";
+import "@/components/final-fidelity.css";
+import "@/components/chart-fidelity.css";
+import "@/components/motion-toast.css";
 import Script from "next/script";
 import { ToastViewport } from "@/components/toast";
 

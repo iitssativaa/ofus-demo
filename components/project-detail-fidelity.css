@@ -1,0 +1,55 @@
+.ofus-project-detail { color: var(--foreground); }
+.ofus-project-detail .pd-toolbar { position: sticky; top: -24px; z-index: 3; margin-bottom: 24px; padding-right: 76px; border-radius: 12px; }
+.ofus-project-detail .pd-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; margin: 0 0 24px; }
+.ofus-project-detail .pd-heading-copy { min-width: 0; }
+.ofus-project-detail .pd-heading-copy > a { display: inline-block; margin-bottom: 7px; font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; }
+.ofus-project-detail .pd-heading h1 { margin: 0; color: var(--foreground); font-size: clamp(25px, 3vw, 32px); line-height: 1.18; font-weight: 600; letter-spacing: -.025em; overflow-wrap: anywhere; }
+.ofus-project-detail .pd-heading-actions { display: flex; align-items: center; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.ofus-project-detail .pd-status { padding: 6px 11px; border-radius: 999px; font-size: 11px; line-height: 1; font-weight: 700; }
+.ofus-project-detail .pd-status.is-active { color: #198754; background: #eaf8f0; }
+.ofus-project-detail .pd-status.is-wrapping { color: #2869d8; background: #edf4ff; }
+.ofus-project-detail .pd-status.is-waiting { color: #9a6a08; background: #fff7df; }
+.ofus-project-detail .pd-delete { color: #d14545; }
+.ofus-project-detail .pd-grid { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 20px; align-items: start; }
+.ofus-project-detail .pd-main, .ofus-project-detail .pd-properties { display: grid; gap: 20px; min-width: 0; }
+.ofus-project-detail .pd-card { border-radius: 12px; padding: 22px 24px; }
+.ofus-project-detail .pd-card h2 { margin: 0; color: var(--foreground); font-size: 14px; line-height: 1.35; font-weight: 700; }
+.ofus-project-detail .pd-summary p { margin: 13px 0 0; max-width: 720px; color: var(--color-slate-500); font-size: 13px; line-height: 1.75; white-space: pre-wrap; }
+.ofus-project-detail .pd-task-filters { display: flex; gap: 4px; margin: 20px 0 8px; padding: 5px; border-radius: 9px; background: var(--background); }
+.ofus-project-detail .pd-task-filters button { flex: 1; min-height: 34px; padding: 7px 10px; border-radius: 7px; color: var(--color-slate-500); font-size: 12px; font-weight: 500; transition: background-color .16s ease, color .16s ease, box-shadow .16s ease; }
+.ofus-project-detail .pd-task-filters button span { margin-left: 5px; opacity: .7; }
+.ofus-project-detail .pd-task-filters button.is-selected { color: var(--foreground); background: var(--surface); box-shadow: 0 1px 3px rgb(24 34 52 / .12); }
+.ofus-project-detail .pd-task-list { margin: 0 -24px -22px; }
+.ofus-project-detail .pd-empty { margin: 0; padding: 24px; border-top: 1px solid var(--border-subtle); color: var(--color-slate-500); font-size: 13px; text-align: center; }
+.ofus-project-detail .pd-notes > h2 { margin-bottom: 14px; }
+.ofus-project-detail .pd-progress-card strong { display: block; margin: 19px 0 12px; color: var(--foreground); font-size: 36px; line-height: 1; font-weight: 600; letter-spacing: -.04em; }
+.ofus-project-detail .pd-progress-card .ofus-progress { height: 6px; }
+.ofus-project-detail .pd-progress-card p { margin: 9px 0 0; color: var(--color-slate-500); font-size: 11px; font-weight: 600; }
+.ofus-project-detail .pd-info-card dl { display: grid; gap: 19px; margin: 19px 0 0; }
+.ofus-project-detail .pd-info-card dl > div { display: grid; gap: 7px; }
+.ofus-project-detail .pd-info-card dt { color: var(--color-slate-500); font-size: 10px; line-height: 1; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.ofus-project-detail .pd-info-card dd { display: flex; align-items: center; gap: 7px; min-width: 0; margin: 0; color: var(--foreground); font-size: 12px; font-weight: 500; }
+.ofus-project-detail .pd-info-card dd > a { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.ofus-project-detail .pd-info-card dd i { width: 8px; height: 8px; flex: 0 0 auto; border-radius: 50%; }
+.ofus-project-detail .pd-members { display: grid; gap: 8px; align-items: start; }
+.ofus-project-detail .pd-resources { margin-top: 20px; }
+.ofus-project-detail .ofus-detail-nav { margin-top: 20px; }
+@media (prefers-reduced-motion: reduce) { .ofus-project-detail .pd-task-filters button { transition: none; } }
+@media (max-width: 760px) {
+  .ofus-project-detail .pd-toolbar { top: -12px; }
+  .ofus-project-detail .pd-heading { align-items: stretch; flex-direction: column; gap: 14px; }
+  .ofus-project-detail .pd-heading-actions { justify-content: flex-start; }
+  .ofus-project-detail .pd-grid { grid-template-columns: 1fr; }
+  .ofus-project-detail .pd-properties { grid-row: 1; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ofus-project-detail .pd-main { grid-row: 2; }
+}
+@media (max-width: 520px) {
+  .ofus-project-detail .pd-properties { grid-template-columns: 1fr; }
+  .ofus-project-detail .pd-card { padding: 19px 18px; }
+  .ofus-project-detail .pd-task-list { margin-right: -18px; margin-bottom: -19px; margin-left: -18px; }
+  .ofus-project-detail .pd-heading-actions .secondary-button { flex: 1; }
+}
+
+.ofus-project-detail>.pd-toolbar{margin:-24px -24px 30px;min-height:76px;padding:16px 76px 16px 28px;border-radius:0;border-bottom:1px solid var(--border-subtle);background:var(--surface)}.ofus-project-detail .pd-card{border:1px solid var(--border-subtle);box-shadow:none}.ofus-project-detail .pd-status{border-radius:6px}.ofus-project-detail .pd-status.is-active{color:var(--color-emerald-700);background:var(--color-emerald-50)}.ofus-project-detail .pd-status.is-wrapping{color:var(--color-blue-700);background:var(--color-blue-50)}.ofus-project-detail .pd-status.is-waiting{color:var(--color-amber-700);background:var(--color-amber-50)}.ofus-project-detail .pd-info-card dt{text-transform:none;letter-spacing:normal;font-size:12px;font-weight:500}.ofus-project-detail .pd-info-card dd{font-size:14px;overflow-wrap:anywhere}.ofus-project-detail .pd-task-filters button.is-selected{color:var(--accent)}.ofus-project-detail>.ofus-detail-nav{margin:30px -24px -24px;padding:16px 28px;background:var(--surface);border-top:1px solid var(--border-subtle)}@media(max-width:600px){.ofus-project-detail>.pd-toolbar{top:-12px;margin:-12px -12px 24px;padding:16px 60px 16px 16px}.ofus-project-detail>.ofus-detail-nav{margin:22px -12px -12px;padding:12px 16px}}
+
+.ofus-project-detail .pd-info-card dd.pd-members{display:grid}

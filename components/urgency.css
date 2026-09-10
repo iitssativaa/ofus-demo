@@ -1,0 +1,26 @@
+/* Shared urgent-priority treatment. No geometry, text-opacity or full-card animation. */
+html .ofus-urgent{
+  --urgent-rest:#FFE7EC;
+  --urgent-peak:#FF526F;
+  --urgent-ink:#4A1020;
+  --urgent-ring:#FF365C66;
+  --urgent-glow:#FF365C80;
+  background-color:var(--urgent-rest);
+  color:var(--urgent-ink)!important;
+  animation:ofus-urgent-pulse 1.8s ease-in-out infinite;
+}
+html[data-theme="dark"] .ofus-urgent{
+  --urgent-rest:#502332;
+  --urgent-peak:#C92647;
+  --urgent-ink:#FFFFFF;
+  --urgent-ring:#FF456C80;
+  --urgent-glow:#FF365C99;
+}
+@keyframes ofus-urgent-pulse{
+  0%,100%{background-color:var(--urgent-rest);box-shadow:0 0 0 0 #FF365C00,0 0 0 #FF365C00}
+  35%,55%{background-color:var(--urgent-peak);box-shadow:0 0 0 2px var(--urgent-ring),0 0 12px var(--urgent-glow)}
+}
+/* Preserve the more vivid fill without motion, overriding per-surface badge fills. */
+@media(prefers-reduced-motion:reduce){
+  html .ofus-urgent{animation:none;background-color:var(--urgent-peak)!important}
+}

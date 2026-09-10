@@ -1,3 +1,5 @@
+import { DetailRouteFrame } from "@/components/detail-route-frame";
+import { CompaniesView } from "@/components/companies-view";
 import { CompanyDetailView } from "@/components/company-detail-view";
 import { TaskCompletionDialog } from "@/components/task-completion-dialog";
 import { TaskDeletionDialog } from "@/components/task-deletion-dialog";
@@ -21,5 +23,5 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
     detailData = { company: null, projects: [], linkedTaskCount: 0, loadError: "Firma yüklenemedi." };
   }
   if (!detailData.loadError && !detailData.company) notFound();
-  return <TaskDataProvider data={taskData}><CompanyDetailView {...detailData} /><TaskDetail /><TaskCompletionDialog /><TaskDeletionDialog /></TaskDataProvider>;
+  return <TaskDataProvider data={taskData}><DetailRouteFrame label="Firma detayı" returnHref="/companies" width="company" background={<CompaniesView companies={taskData.companies} projects={taskData.projects} />}><CompanyDetailView key={id} {...detailData} /><TaskDetail /><TaskCompletionDialog /><TaskDeletionDialog /></DetailRouteFrame></TaskDataProvider>;
 }

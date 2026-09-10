@@ -9,7 +9,9 @@ import type { AuthenticatedWorkspace } from "@/lib/supabase/bootstrap";
 import { profileUpdatedEvent, type ProfileUpdatedDetail } from "@/lib/profile-events";
 import { Avatar } from "./avatar";
 import { BrandMark } from "./brand-mark";
+import { ThemePreference } from "./theme-preference";
 import { PageMotion } from "./motion/page-motion";
+import { FormDraftProvider } from "./form-draft-provider";
 
 const navItems = [
   { href: "/dashboard", label: "Genel Bakış", icon: "chart" },
@@ -44,7 +46,7 @@ export function AppShell({ children, currentUser }: { children: React.ReactNode;
   }, [currentUser.userId]);
   useEffect(() => {
     const shortcut = (event: KeyboardEvent) => {
-      if (!event.altKey || event.ctrlKey || event.metaKey || document.querySelector('[aria-modal="true"]')) return;
+      if (!event.altKey || event.ctrlKey || event.metaKey || [...document.querySelectorAll<HTMLElement>('[aria-modal="true"]')].some((dialog) => !dialog.closest('[inert],[hidden],[aria-hidden="true"]') && dialog.getClientRects().length > 0)) return;
       const item = navItems[Number(event.key) - 1];
       if (item) { event.preventDefault(); router.push(item.href); }
     };
@@ -70,12 +72,12 @@ export function AppShell({ children, currentUser }: { children: React.ReactNode;
     return () => { document.body.style.overflow = overflow; window.removeEventListener("keydown", keys); trigger?.focus(); };
   }, [mobileNavOpen, setMobileNavOpen]);
   const navigation = (mobile = false) => <nav aria-label={mobile ? "Mobil ana menü" : "Ana menü"} className="ofus-nav">{navItems.map((item) => <Link key={item.href} href={item.href} onClick={() => setMobileNavOpen(false)} aria-current={pathname === item.href || pathname.startsWith(item.href + "/") ? "page" : undefined} aria-label={item.label} className="ofus-nav-link"><svg viewBox="0 0 64 64" aria-hidden="true"><use href={`/ofus/navigation.svg#ofus-nav-${item.icon}`} /></svg><span>{item.label}</span></Link>)}</nav>;
-  const account = <div className="ofus-account"><Link href="/settings" aria-label={`${profile.displayName} — Profilim`} title={profile.displayName}><Avatar name={profile.displayName} initials={profile.displayName.slice(0, 1).toLocaleUpperCase("tr-TR")} src={profile.avatarUrl} /></Link><div className="ofus-account-menu"><p>{profile.displayName}</p><p className="text-sm text-slate-400">{currentUser.workspaceName}</p><Link href="/demo-guide" className="secondary-button"><BookOpen size={16} />Demo Yönergesi</Link><SignOutButton /></div></div>;
-  return <div className="ofus-app">
+  const account = <div className="ofus-account"><Link href="/settings" aria-label={`${profile.displayName} — Profilim`} title={profile.displayName}><Avatar name={profile.displayName} initials={profile.displayName.slice(0, 1).toLocaleUpperCase("tr-TR")} src={profile.avatarUrl} /></Link><div className="ofus-account-menu"><p>{profile.displayName}</p><p className="text-sm text-slate-400">{currentUser.workspaceName}</p><Link href="/demo-guide" className="secondary-button"><BookOpen size={16} />Demo Yönergesi</Link><Link href="/board" className="secondary-button">Mantar Pano</Link><SignOutButton /></div></div>;
+  return <FormDraftProvider scope={`${currentUser.userId}:${currentUser.workspaceId}`}><div className="ofus-app"><ThemePreference userId={currentUser.userId} />
     <a className="ofus-skip" href="#main">İçeriğe geç</a>
     <aside className="ofus-rail"><Link href="/dashboard" className="ofus-rail-brand" aria-label="OfUs ana sayfa"><BrandMark /></Link>{navigation()}{account}</aside>
     <header className="ofus-mobile-header"><button ref={menuButton} className="icon-button" onClick={() => setMobileNavOpen(true)} aria-label="Menüyü aç" aria-expanded={mobileNavOpen}><Menu size={22} /></button><BrandMark /><Link href="/settings" aria-label="Profilim"><Avatar name={profile.displayName} initials={profile.displayName.slice(0, 1)} src={profile.avatarUrl} /></Link></header>
-    <div className="ofus-mobile-overlay" data-open={mobileNavOpen} aria-hidden={!mobileNavOpen} inert={!mobileNavOpen}><button className="ofus-backdrop" onClick={() => setMobileNavOpen(false)} aria-label="Menüyü kapat" /><aside ref={mobilePanel} role="dialog" aria-modal="true" aria-label="Ana menü" className="ofus-mobile-menu"><div className="flex items-center justify-between"><BrandMark /><button className="icon-button" onClick={() => setMobileNavOpen(false)} aria-label="Kapat"><X size={22} /></button></div>{navigation(true)}<Link href="/demo-guide" onClick={() => setMobileNavOpen(false)} className="secondary-button"><BookOpen size={16} />Demo Yönergesi</Link><SignOutButton /></aside></div>
+    <div className="ofus-mobile-overlay" data-open={mobileNavOpen} aria-hidden={!mobileNavOpen} inert={!mobileNavOpen}><button className="ofus-backdrop" onClick={() => setMobileNavOpen(false)} aria-label="Menüyü kapat" /><aside ref={mobilePanel} role="dialog" aria-modal="true" aria-label="Ana menü" className="ofus-mobile-menu"><div className="flex items-center justify-between"><BrandMark /><button className="icon-button" onClick={() => setMobileNavOpen(false)} aria-label="Kapat"><X size={22} /></button></div>{navigation(true)}<Link href="/demo-guide" onClick={() => setMobileNavOpen(false)} className="secondary-button"><BookOpen size={16} />Demo Yönergesi</Link><Link href="/board" onClick={() => setMobileNavOpen(false)} className="secondary-button">Mantar Pano</Link><SignOutButton /></aside></div>
     <main id="main" tabIndex={-1} className="ofus-main" inert={mobileNavOpen}><PageMotion>{children}</PageMotion></main>
-  </div>;
+  </div></FormDraftProvider>;
 }

@@ -26,6 +26,7 @@ export type CalendarEventInput = {
   description: string;
   category: CalendarEventCategory;
   date: string;
+  endDate?: string;
   startTime: string;
   endTime: string;
   participantIds: string[];

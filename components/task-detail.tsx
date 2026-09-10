@@ -1,8 +1,9 @@
 "use client";
 
 import { CalendarDays, Check, CheckCircle2, ChevronLeft, ChevronRight, Clipboard, Clock3, MessageSquare, Plus, Trash2, X } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import { priorityLabels, statusLabels } from "@/lib/i18n";
 import type { Priority, Status, TaskSize } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
@@ -16,6 +17,7 @@ import { useDialogFocus } from "./use-dialog-focus";
 import { toast, type ToastKey } from "./toast";
 
 const activeStatuses: Status[] = ["To Do", "In Progress", "Waiting", "Review"];
+const subscribeReady = () => () => undefined;
 const completionItems = [
   ["delivered", "Teslim edildi"],
   ["feedbackReceived", "Müşteriden dönüt alındı"],
@@ -31,11 +33,36 @@ function InfoItem({ label, children }: { label: string; children: React.ReactNod
 
 export function TaskDetail({ returnHref, routeNavigation = false }: { returnHref?: string; routeNavigation?: boolean } = {}) {
   const router = useRouter();
+  const pathname = usePathname();
+  const ready = useSyncExternalStore(subscribeReady, () => true, () => false);
   const [newSubtask, setNewSubtask] = useState("");
   const { tasks, companies, projects, users, taskError, taskSaving, selectedTask: task, setSelectedTask, setCompletionTask, setDeletionTask, updateTask, addTaskActivity } = useWorkspace();
-  const close = () => { setSelectedTask(null); if (returnHref) router.push(returnHref); };
-  useDialogFocus(Boolean(task), close);
-  if (!task) return null;
+  const panel = useRef<HTMLElement>(null);
+  const dialog = useRef<HTMLDivElement>(null);
+  const exitAnimation = useRef<Animation | null>(null);
+  const closing = useRef(false);
+  useEffect(() => {
+    closing.current = false;
+    dialog.current?.removeAttribute("inert");
+    dialog.current?.removeAttribute("aria-busy");
+    return () => { exitAnimation.current?.cancel(); };
+  }, [task?.id]);
+  const close = async () => {
+    if (closing.current) return;
+    closing.current = true;
+    const current = dialog.current;
+    current?.setAttribute("inert", "");
+    current?.setAttribute("aria-busy", "true");
+    if (!matchMedia("(prefers-reduced-motion: reduce)").matches && current) {
+      exitAnimation.current = current.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, easing: "ease", fill: "forwards" });
+      await exitAnimation.current.finished.catch(() => undefined);
+    }
+    if (!current?.isConnected) return;
+    setSelectedTask(null);
+    if (returnHref) router.push(returnHref);
+  };
+  useDialogFocus(Boolean(task) && ready, close);
+  if (!task || !ready) return null;
   const update = async (values: Parameters<typeof updateTask>[1], notification: ToastKey | null = "recordUpdated") => {
     try { await updateTask(task.id, values); if (notification) toast.show(notification); return true; }
     catch { return false; }
@@ -56,16 +83,20 @@ export function TaskDetail({ returnHref, routeNavigation = false }: { returnHref
   const completed = !cancelled && task.status === "Done";
   const archived = completed || cancelled;
   const activities = [...(task.activity ?? [])].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-  const taskIndex = tasks.findIndex((item) => item.id === task.id);
-  const previousTask = taskIndex > 0 ? tasks[taskIndex - 1] : null;
-  const nextTask = taskIndex >= 0 && taskIndex < tasks.length - 1 ? tasks[taskIndex + 1] : null;
-  const goToTask = (next: typeof task) => { setNewSubtask(""); if (routeNavigation) router.replace(`/tasks/${next.id}`); else setSelectedTask(next); };
-  const copyLink = async () => { try { await navigator.clipboard.writeText(`${window.location.origin}/tasks/${task.id}`); toast.show("linkCopied"); } catch { toast.show("copyError"); } };
+  const contextPath = (returnHref ?? pathname).split("?")[0];
+  const projectScope = contextPath.match(/^\/projects\/([^/]+)$/)?.[1];
+  const companyScope = contextPath.match(/^\/companies\/([^/]+)$/)?.[1];
+  const scopedTasks = tasks.filter((item) => (!projectScope || item.projectId === projectScope) && (!companyScope || item.companyId === companyScope));
+  const taskIndex = scopedTasks.findIndex((item) => item.id === task.id);
+  const previousTask = taskIndex > 0 ? scopedTasks[taskIndex - 1] : null;
+  const nextTask = taskIndex >= 0 && taskIndex < scopedTasks.length - 1 ? scopedTasks[taskIndex + 1] : null;
+  const goToTask = (next: typeof task) => { setNewSubtask(""); if (routeNavigation) router.replace(`/tasks/${next.id}?from=${encodeURIComponent(returnHref ?? "/tasks")}`); else setSelectedTask(next); };
+  const copyLink = async () => { try { await navigator.clipboard.writeText(`${window.location.origin}/tasks/${task.id}?from=${encodeURIComponent(returnHref ?? window.location.pathname + window.location.search)}`); toast.show("linkCopied"); } catch { toast.show("copyError"); } };
   const addSubtask = async () => { const label = newSubtask.trim(); if (!label || taskSaving) return; const saved = await updateWithActivity({ checklist: [...task.checklist, { id: crypto.randomUUID(), label, done: false }] }, `Alt görev eklendi: ${label}`, "checklist_updated", "subtaskAdded"); if (saved !== false) setNewSubtask(""); };
 
-  return <div className="fixed inset-0 z-[55] flex justify-end bg-slate-950/25 backdrop-blur-[1px]" role="dialog" aria-modal="true" aria-label={`Görev: ${task.title}`}>
+  return createPortal(<div ref={dialog} className="ofus-task-dialog fixed inset-0 z-[75] flex justify-end bg-slate-950/25" role="dialog" aria-modal="true" aria-label={`Görev: ${task.title}`}>
     <button className="absolute inset-0" onClick={close} aria-label="Görev ayrıntılarını kapat" />
-    <aside className="drawer-shell ofus-detail-panel relative flex h-full w-full max-w-[900px] flex-col overflow-hidden bg-white shadow-2xl">
+    <aside ref={panel} className="drawer-shell ofus-detail-panel relative flex h-full w-full max-w-[900px] flex-col overflow-hidden bg-white shadow-2xl">
       <header className="ofus-detail-toolbar"><div className="ofus-detail-toolbar-group"><button className="icon-button" onClick={close} aria-label="Görevlerden çık"><ChevronLeft size={18} /></button><span className="ofus-detail-id">Görev · {task.id.slice(0, 8)}</span>{cancelled ? <span className="badge bg-rose-50 text-rose-700">İptal edildi</span> : <><StatusBadge status={task.status} /><PriorityBadge priority={task.priority} /></>}</div><div className="ofus-detail-toolbar-group"><button className="secondary-button" type="button" onClick={copyLink}><Clipboard size={15} /><span className="hidden sm:inline">Bağlantıyı kopyala</span></button><button className="icon-button" onClick={close} aria-label="Kapat"><X size={18} /></button></div></header>
       <div className="flex-1 overflow-y-auto p-5 sm:p-7">
         {taskError ? <p role="alert" className="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-medium text-rose-700">{taskError}</p> : null}
@@ -88,7 +119,7 @@ export function TaskDetail({ returnHref, routeNavigation = false }: { returnHref
               <label className="field-label">Saat<div className="relative"><Clock3 size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" /><input disabled={taskSaving} type="time" lang="tr" className="input pl-9" value={task.dueTime ?? "17:00"} onChange={(event) => void updateWithActivity({ dueDate: task.dueDate, dueTime: event.target.value }, `Son tarih saati ${event.target.value} olarak değiştirildi`, "due_date_changed")} /></div></label>
             </div>
             <div className="field-label">Durum<ThemedSelect disabled={taskSaving} ariaLabel="Durum" value={task.status} onValueChange={(value) => { const status = value as Status; void updateWithActivity({ status }, `Durum “${statusLabels[status]}” yapıldı`, "status_changed"); }} options={activeStatuses.map((item) => ({ value: item, label: statusLabels[item] }))} /></div>
-            <div className="field-label">Öncelik<ThemedSelect disabled={taskSaving} ariaLabel="Öncelik" value={task.priority} onValueChange={(value) => void update({ priority: value as Priority })} options={(["Low", "Medium", "High", "Urgent"] as Priority[]).map((item) => ({ value: item, label: priorityLabels[item] }))} /></div>
+            <div className="field-label">Öncelik<ThemedSelect disabled={taskSaving} ariaLabel="Öncelik" className={task.priority === "Urgent" ? "input ofus-urgent" : "input"} value={task.priority} onValueChange={(value) => void update({ priority: value as Priority })} options={(["Low", "Medium", "High", "Urgent"] as Priority[]).map((item) => ({ value: item, label: priorityLabels[item] }))} /></div>
             <div className="field-label">Boyut<ThemedSelect disabled={taskSaving} ariaLabel="Boyut" value={task.size} onValueChange={(value) => void update({ size: value as TaskSize })} options={["S", "M", "L", "XL"].map((item) => ({ value: item, label: item }))} /></div>
             <div className="field-label">Proje<ThemedSelect disabled={taskSaving} ariaLabel="Proje" value={task.projectId} onValueChange={(value) => { const next = projects.find((item) => item.id === value); if (next) void updateWithActivity({ projectId: next.id, companyId: next.companyId }, `Proje “${next.name}” olarak değiştirildi`, "project_changed"); }} options={projects.map((item) => ({ value: item.id, label: item.name }))} /></div>
           </section>
@@ -107,5 +138,5 @@ export function TaskDetail({ returnHref, routeNavigation = false }: { returnHref
       <nav className="ofus-detail-nav mx-4 mb-3" aria-label="Görevler arasında gezinme"><button type="button" disabled={!previousTask} onClick={() => previousTask && goToTask(previousTask)}><ChevronLeft size={18} /><span><small>Önceki görev</small><b>{previousTask?.title ?? "Başlangıç"}</b></span></button><button type="button" disabled={!nextTask} onClick={() => nextTask && goToTask(nextTask)}><span><small>Sonraki görev</small><b>{nextTask?.title ?? "Son"}</b></span><ChevronRight size={18} /></button></nav>
       {!archived ? <footer className="grid shrink-0 grid-cols-2 items-center gap-2 border-t border-slate-200 bg-slate-50 px-3 py-3 sm:flex sm:justify-between sm:px-5"><button onClick={() => setDeletionTask(task)} className="inline-flex h-9 items-center justify-center gap-2 text-xs font-semibold text-rose-600 hover:text-rose-700"><Trash2 size={15} />Görevi Sil</button><button onClick={() => setCompletionTask(task)} className="primary-button completion-button"><CheckCircle2 size={15} />Görevi Tamamla</button></footer> : <footer className="border-t border-slate-200 bg-slate-50 px-5 py-3 text-right text-[11px] text-slate-400">{completed ? "Tamamlanan" : "İptal edilen"} görevler yalnızca okunur</footer>}
     </aside>
-  </div>;
+  </div>, document.body);
 }

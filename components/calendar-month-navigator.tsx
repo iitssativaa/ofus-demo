@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useDialogFocus } from "./use-dialog-focus";
 import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, X } from "lucide-react";
 
 const monthNames = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
@@ -16,6 +17,7 @@ export function CalendarMonthNavigator({ year, month, selectedDate, onNavigate, 
   onToday: () => void;
 }) {
   const [open, setOpen] = useState(false);
+  useDialogFocus(open, () => setOpen(false));
   const [view, setView] = useState<"days" | "months">("days");
   const [navigatorDate, setNavigatorDate] = useState(() => new Date(year, month, 1));
   const navigatorYear = navigatorDate.getFullYear();

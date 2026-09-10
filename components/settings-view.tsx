@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
-import { Building2, Camera, ChevronDown, ExternalLink, MessageCircle, Trash2, UserRound, X } from "lucide-react";
+import { Building2, Camera, ChevronDown, ExternalLink, Link2, MessageCircle, Phone, Trash2, UserRound, X } from "lucide-react";
 import { emitProfileUpdated } from "@/lib/profile-events";
 import type { SettingsData, SettingsMember } from "@/lib/supabase/settings";
 import { createTelegramLink, disconnectTelegram, getTelegramConnection, removeOwnAvatar, sendTelegramTestMessage, updateOwnProfile, uploadOwnAvatar, validateAvatarFile } from "@/lib/supabase/settings-client";
@@ -220,21 +220,27 @@ export function SettingsView({ initialData }: { initialData: SettingsData }) {
               {avatarError ? <p className="mt-3 text-xs font-semibold text-rose-600" role="alert">{avatarError}</p> : null}
             </div>
           </div> : <p className="mt-4 text-sm text-rose-600" role="alert">Profil bilgileri yüklenemedi.</p>}
-        </section>
-        <section className="settings-accordion panel overflow-hidden">
-          <button
-            type="button"
-            className="settings-accordion-trigger flex min-h-14 w-full items-center gap-3 px-5 py-4 text-left transition focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-300"
-            aria-expanded={telegramExpanded}
-            aria-controls="telegram-settings"
-            onClick={() => setTelegramExpanded((current) => !current)}
-          >
-            <MessageCircle size={17} className="shrink-0 text-indigo-600"/>
-            <span className="min-w-0 flex-1"><span className="section-title block">Telegram</span><span className="mt-0.5 block truncate text-[11px] text-slate-400">{telegram.connected ? "Bağlı" : "Bağlı değil"}</span></span>
-            <ChevronDown size={17} className={`shrink-0 text-slate-400 transition ${telegramExpanded ? "rotate-180" : ""}`} />
-          </button>
+          <div className="mt-6 border-t border-slate-100 pt-5">
+            <h3 className="text-sm font-semibold text-slate-800">Profil bağlantıları</h3>
+            <div className="settings-profile-links mt-3 grid gap-3">
+              <div className="flex min-h-20 items-center gap-3 rounded-xl border border-slate-200 p-3">
+                <span className="rounded-lg bg-sky-50 p-2 text-sky-600"><Link2 size={18} /></span>
+                <span className="min-w-0 flex-1"><span className="block text-sm font-semibold text-slate-700">LinkedIn profili</span><span className="mt-0.5 block text-[11px] text-slate-400">Henüz kullanılamıyor</span></span>
+              </div>
+              <div className="flex min-h-20 items-center gap-3 rounded-xl border border-slate-200 p-3">
+                <span className="rounded-lg bg-sky-50 p-2 text-sky-600"><Phone size={18} /></span>
+                <span className="min-w-0 flex-1"><span className="block text-sm font-semibold text-slate-700">Telefon numarası</span><span className="mt-0.5 block text-[11px] text-slate-400">Henüz kullanılamıyor</span></span>
+              </div>
+              <button type="button" className="flex min-h-20 w-full items-center gap-3 rounded-xl border border-slate-200 p-3 text-left transition hover:border-indigo-200 hover:bg-indigo-50/30 focus:outline-none focus:ring-2 focus:ring-indigo-300" aria-expanded={telegramExpanded} aria-controls="telegram-settings" onClick={() => setTelegramExpanded((current) => !current)}>
+                <span className="rounded-lg bg-sky-50 p-2 text-sky-600"><MessageCircle size={18} /></span>
+                <span className="min-w-0 flex-1"><span className="block text-sm font-semibold text-slate-700">Telegram</span><span className="mt-0.5 block truncate text-[11px] text-slate-400">{telegram.connected ? telegram.username ? `@${telegram.username}` : "Bağlı" : "Bağlı değil"}</span></span>
+                <span className={`rounded-full px-2 py-1 text-[9px] font-bold uppercase tracking-wide ${telegram.connected ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>{telegram.connected ? "Bağlı" : "Ayrıntılar"}</span>
+                <ChevronDown size={16} className={`shrink-0 text-slate-400 transition ${telegramExpanded ? "rotate-180" : ""}`} />
+              </button>
+            </div>
+          </div>
           <div id="telegram-settings" aria-hidden={!telegramExpanded} inert={!telegramExpanded} className={`grid transition-[grid-template-rows,opacity] duration-200 ${telegramExpanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}>
-          <div className="min-h-0 overflow-hidden"><div className="border-t border-slate-100 p-5 pt-4">
+          <div className="min-h-0 overflow-hidden"><div className="mt-4 rounded-xl border border-slate-200 p-4">
           <p className="text-xs leading-5 text-slate-400">Görev hatırlatmalarını Telegram üzerinden alın.</p>
           <div className="mt-4 rounded-xl border border-slate-200 p-3">
             <div className="flex items-center gap-3">

@@ -5,7 +5,7 @@ const priorityStyles: Record<Priority, string> = {
   Low: "bg-slate-100 text-slate-600",
   Medium: "bg-blue-50 text-blue-700",
   High: "bg-amber-50 text-amber-700",
-  Urgent: "bg-rose-50 text-rose-700",
+  Urgent: "ofus-urgent",
 };
 
 const statusStyles: Record<Status, string> = {

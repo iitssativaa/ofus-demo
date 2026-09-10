@@ -33,7 +33,7 @@ export async function listCalendarEventsClient(): Promise<CalendarEvent[]> {
 
 function eventTimes(input: CalendarEventInput) {
   const startsAt = deadlineToIso(input.date, input.startTime);
-  const endsAt = input.endTime ? deadlineToIso(input.date, input.endTime) : null;
+  const endsAt = input.endTime ? deadlineToIso(input.endDate || input.date, input.endTime) : null;
   if (!startsAt) throw new Error("Geçerli bir tarih ve başlangıç saati seçmelisiniz.");
   if (input.endTime && (!endsAt || new Date(endsAt) <= new Date(startsAt))) throw new Error("Bitiş saati başlangıç saatinden sonra olmalıdır.");
   return { startsAt, endsAt };

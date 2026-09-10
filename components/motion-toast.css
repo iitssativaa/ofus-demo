@@ -1,0 +1,53 @@
+/* Merge after the current toast rules in app/globals.css. */
+.ofus-auth-form { animation: none; }
+.ofus-toast-viewport {
+  top: calc(20px + env(safe-area-inset-top));
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  gap: 8px;
+}
+.ofus-toast {
+  display: flex;
+  grid-template-columns: none;
+  gap: 10px;
+  width: max-content;
+  max-width: min(500px, calc(100vw - 32px));
+  min-height: 54px;
+  padding: 10px 10px 10px 15px;
+  border: 1px solid var(--border-subtle);
+  border-left-width: 1px;
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: 0 6px 22px rgb(30 38 65 / 12%);
+  animation: ofus-toast-in 260ms cubic-bezier(.2,.7,.2,1) both;
+  font: 400 13px/1.5 "Luxora Grotesk", Arial, sans-serif;
+}
+.ofus-toast-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #DCF7EC;
+  color: #16BA83;
+}
+.ofus-toast-icon svg { width: 17px; height: 17px; }
+.ofus-toast[data-tone="error"] .ofus-toast-icon { background: #FDE4E7; color: #F15F72; }
+.ofus-toast-message { min-width: 0; max-width: 310px; overflow-wrap: anywhere; }
+.ofus-toast > .ofus-toast-action { margin-left: 2px; padding: 8px 4px; color: var(--accent); font-size: 12px; font-weight: 500; }
+.ofus-toast-close { flex: none; width: 28px; height: 30px; border-radius: 7px; }
+.ofus-toast.is-leaving { animation: ofus-toast-out 180ms ease both; pointer-events: none; }
+html[data-theme="dark"] .ofus-toast { background: #242528; border-color: #414348; box-shadow: 0 6px 22px rgb(0 0 0 / 30%); }
+html[data-theme="dark"] .ofus-toast-icon { background: #163C34; color: #66DDB2; }
+html[data-theme="dark"] .ofus-toast[data-tone="error"] .ofus-toast-icon { background: #462B32; color: #F68A98; }
+@keyframes ofus-toast-in { from { opacity: 0; transform: translate3d(0,10px,0); } to { opacity: 1; transform: translate3d(0,0,0); } }
+@keyframes ofus-toast-out { from { opacity: 1; transform: translate3d(0,0,0); } to { opacity: 0; transform: translate3d(0,-5px,0); } }
+@media (max-width: 480px) {
+  .ofus-toast-viewport { top: calc(12px + env(safe-area-inset-top)); max-width: calc(100vw - 24px); }
+  .ofus-toast { gap: 8px; max-width: calc(100vw - 24px); min-height: 52px; padding: 10px; }
+  .ofus-toast-message { font-size: 12px; }
+  .ofus-toast > .ofus-toast-action { padding: 8px 2px; font-size: 11px; }
+  .ofus-toast-close { width: 24px; }
+}
+@media (prefers-reduced-motion: reduce) { .ofus-toast, .ofus-toast.is-leaving { animation: none; } }
